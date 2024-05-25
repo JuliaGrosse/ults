@@ -20,13 +20,15 @@ Requires Python > 3.10.
 
 ## Usage
 
-See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py).
+See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Run via `python examples/generate.py`. You need to adapt the `from_pretrained` lines to point Huggingface or your own local cache.
+
+#### Quickstart snippet
 
 ```python
 from ults import ULTS
 
-tokenizer = AutoTokenizer.from_pretrained("meta/Llama-2-7b-hf").to(DEVICE)
-model = AutoModelForCausalLM.from_pretrained("meta/Llama-2-7b-hf", torch_dtype=torch.bfloat16).to(DEVICE)
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf").to(DEVICE)
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-hf", torch_dtype=torch.bfloat16).to(DEVICE)
 model.eval()
 
 text = "Moose is a"
@@ -46,7 +48,7 @@ generated_tokens = best_sequence[0, -(n + 1) :]
 generated_text = tokenizer.decode(generated_tokens)
 ```
 
-### Empirical Prior
+### Using the Empirical Prior
 
 TODO!
 
