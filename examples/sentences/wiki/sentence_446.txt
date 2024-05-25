@@ -1,0 +1,6 @@
+MX Linux is a Linux distribution based on Debian stable and using core antiX components, with additional software created or packaged by the MX community. The development of MX Linux is a collaborative effort between the antiX and former MEPIS communities. The MX 'name' comes from the M for MEPIS and the X from antiX - an acknowledgment of their roots. The community's stated goal is to produce "a family of operating systems that are designed to combine elegant and efficient desktops with high stability and solid performance". 
+
+MX Linux uses Xfce as the main desktop environment, to which it adds a free-standing KDE Plasma version and, in 2021, a stand-alone Fluxbox implementation. Other environments can be added or are available as "spin-off" ISO images.
+
+History 
+MX Linux began in a discussion about future options among members of the MEPIS community in December 2013. Developers from antiX then joined them, bringing the ISO build system as well

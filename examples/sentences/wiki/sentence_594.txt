@@ -1,0 +1,8 @@
+Data collection system (DCS) is a computer application that facilitates the process of data collection, allowing specific, structured information to be gathered in a systematic fashion, subsequently enabling data analysis to be performed on the information. Typically a DCS displays a form that accepts data input from a user and then validates that input prior to committing the data to persistent storage such as a database.
+
+Many computer systems implement data entry forms, but data collection systems tend to be more complex, with possibly many related forms containing detailed user input fields, data validations, and navigation links among the forms.
+
+DCSs can be considered a specialized form of content management system (CMS), particularly when they allow the information being gathered to be published, edited, modified, deleted, and maintained. Some general-purpose CMSs include features of DCSs.
+
+Importance 
+Accurate data collection is essential to many business processes, to the enforcement of many government regulations, and to maintaining the integrity of

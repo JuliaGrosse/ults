@@ -1,0 +1,10 @@
+SUBREDDIT: r/AskReddit
+TITLE: Is This Possible...?
+POST: So I was going through the subreddits I'm subscribed to and I was curious as to why there isn't a more organized, simple way to find and subscribe to them. 
+
+I would imagine a page with collapsible categories and checkboxes to subscribe/unsubscribe would be much more user friendly. Is this feasible? I understand that there are many subreddits -- so you could only include ones with over 100 or 250 subscribers to narrow it down. Additionally, there could be a preference option to keep your subreddit out of the list if you so choose.
+
+I understand that the admins are busy, which is why the title doesn't say "For the admins". I know Reddit has some decent programmers, and quite a few decent minds. Is anyone else interested in revamping the subreddit subscription method? I'm sure there are enough programmers here to start a community project.
+
+I apologize for the rambling nature of this post.
+TL;DR: 

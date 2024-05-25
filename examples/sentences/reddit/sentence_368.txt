@@ -1,0 +1,6 @@
+SUBREDDIT: r/jobs
+TITLE: Currently unemployed - which tech certification exams are worth taking?
+POST: Background: Worked a temporary job at a large company while I was in school and right after I graduated.  That contract ended in December.  I went to school for Computer Science.  While I was working that job I learned that I liked hands on work (getting dirty with networking, tech support and general shit) more than anything else.
+
+Anyway right now I'm applying to just about anything I can.  A lot of places that spark my interest usually mention the A+ certification in the requirements.  I've heard different things about this exam from people I know and what I've read online but the fact that real jobs are requiring this exam is hard to ignore.  I've also read a lot about taking the CCNA as it will help a lot on top of my hands on experience.
+TL;DR: 

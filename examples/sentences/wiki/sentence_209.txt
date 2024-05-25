@@ -1,0 +1,9 @@
+Animal reflectors or mirrors are important to the survival of many kinds of animal, and, in some cases, have been mimicked by engineers developing photonic crystals. Examples are the scales of silvery fish, and the tapetum lucidum that causes the eyeshine of dogs and cats using the sclera. All these reflectors work by interference of light in multilayer structures with dimensions less than a wavelength, so can be classed as photonic crystals. Other animal photonic crystals have evolved to reflect narrow spectra, producing animal coloration.
+
+Functions of animal reflectors
+
+Camouflage
+The scales of silvery fish, by reflecting light from the flank make detection by a predator difficult because the reflected light is similar to the incident light in the absence of the prey (Fig. 1).
+
+Focusing light
+The eyes of some bivalve mollusks, such as the scallop (Pecten) use a conc

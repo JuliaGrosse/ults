@@ -41,7 +41,6 @@ class ULTS:
             )
 
         self.model = model
-        self.model_inputs = model_inputs
         self.epsilon = epsilon
         self.depth = max_tokens
         self.width = vocab_size
@@ -54,10 +53,16 @@ class ULTS:
         self.max_beam_size = max_beam_size
         self.used_max_beam_size = np.zeros(self.depth + 1)
         self.pruned_depth = -1
+
+        if device is None:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = device
+
         self.tree = nx.DiGraph()
         self.tree.add_node(
             "0",
-            tokens=model_inputs["input_ids"],
+            tokens=model_inputs["input_ids"].to(self.device),
             loglike=1,
             samples=np.ones(2),
             depth=0,
@@ -65,13 +70,7 @@ class ULTS:
             best_child=None,
             explored=False,
         )
-
-        if device is None:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        else:
-            self.device = device
-
-        self.betaparameters = self.init_prior().to(self.device)
+        self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
 
     def init_prior(self) -> torch.Tensor:
         """Build the approximate prior over Delta or load if already exists.
@@ -83,12 +82,12 @@ class ULTS:
         DIRNAME = ".cache/priors"
 
         if self.prior_kind == "dirichlet":
-            FNAME = f"{DIRNAME}/prior_depth-{self.depth}_width-{self.width}_alpha-{self.prior_dirichlet_alpha}.npy"
+            FNAME = f"{DIRNAME}/prior_depth{self.depth}_width{self.width}_alpha{self.prior_dirichlet_alpha}.npy"
         else:
-            FNAME = f"{DIRNAME}/prior_depth-{self.depth}_width-{self.width}_emp.npy"
+            FNAME = f"{DIRNAME}/prior_depth{self.depth}_width{self.width}_emp.npy"
 
         if os.path.isfile(FNAME):
-            return torch.load(FNAME)
+            return np.load(FNAME)
 
         def sample():
             if self.prior_kind == "dirichlet":
@@ -130,7 +129,7 @@ class ULTS:
         if not os.path.exists(DIRNAME):
             os.makedirs(DIRNAME)
 
-        torch.save(beta_params, FNAME)
+        np.save(FNAME, beta_params)
 
         return beta_params
 
@@ -253,10 +252,11 @@ class ULTS:
         best_path: torch.Tensor = torch.tensor(0).long()
         best_observed_value: float = -np.inf
         n_llm_calls: int = 0
+        prob_result_nodes: float = 0
 
         # As long as the probability that we have found the maximum is too low and we
         # still have budget left keep searching:
-        while (self.prob_result_nodes < 1 - self.epsilon) and self.budget_left():
+        while (prob_result_nodes < 1 - self.epsilon) and self.budget_left():
             # Select a node for expansion
             new_node_name = self.recursive_best_child("0")
             new_node_tokens = self.tree.nodes[new_node_name]["tokens"]
@@ -285,11 +285,9 @@ class ULTS:
                     )
                 else:
                     a, b, loc, scale = self.betaparameters[self.depth - child_depth - 1]
-                    m = Beta(torch.tensor([a]), torch.tensor([b]))
+                    m = Beta(a, b)
                     betas_all = (
-                        m.sample(torch.Size([self.buffer_size, self.sample_size]))[
-                            :, :, 0
-                        ]
+                        m.sample(torch.Size([self.buffer_size, self.sample_size]))
                         * scale
                     ) + loc
                     betas_all = torch.log(betas_all)
@@ -330,7 +328,7 @@ class ULTS:
 
             # Update the estimate for the probability that we found the optimal path
             overall_max_samples = self.tree.nodes["0"]["samples"]
-            self.prob_result_nodes = (
+            prob_result_nodes = (
                 torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
             )
 

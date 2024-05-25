@@ -1,0 +1,31 @@
+SUBREDDIT: r/tifu
+TITLE: TIFU by doing nothing wrong.
+POST: My eBay seller fees for December totaled $12.60. Fine. My PayPal balance was upwards of $50. Surely they'll charge me $12.60 from that, right?
+
+NOPE. Today I get a letter from my bank:
+
+> On 02 JAN 14, [bank name] received and returned an EFT (Electronic Funds Transfer) item UNPAID. A fee of $25.00 was charged to your [account number] account.
+
+> The EFT item was from PAYPAL for the amount of $12.60. The item was returned for the following reason: Insufficient Funds.
+
+I also get an email from PayPal:
+
+> Hello TortoiseWrath,
+
+> You recently attempted to transfer funds from your bank account. ^^^NO ^^^I ^^^FUCKING ^^^DIDN'T
+Your bank has declined the funds transfer because your account did not have sufficient funds available. We will automatically re-attempt this transfer in 3 business days. ^^^OH ^^^GREAT ^^^THANKS ^^^JUST ^^^KEEP ^^^NOT ^^^USING ^^^MY ^^^PAYPAL ^^^BALANCE Please fund your bank account immediately to ensure this transaction can be completed.
+
+I go to my bank. Great, the bank's closed and the ATM is broken. It is the only ATM within 100 miles.
+
+I try to transfer $25 out of my PayPal account to cover both the transaction they're repeatedly trying to make and the -$5 balance they've forced upon my bank account...
+
+> This will take three to four business days.
+
+FUCK YOU. Now you're going to overdraft my account again on Monday, aren't you? Probably in the middle of the night on Monday, before the bank opens so I still won't have any money in it.
+
+Naturally, when I contact PayPal about it, they blame it on me:
+
+> Because you did not ensure your bank account balance was greater than the transaction amount, we cannot assist you in this matter. Please fund your bank account immediately.
+
+So apparently TIFU.
+TL;DR: 

@@ -1,0 +1,20 @@
+SUBREDDIT: r/AskReddit
+TITLE: RFID Questions for a newb.
+POST: Hi all,
+
+Very very new to the whole RFID thing. I have an idea for a new application for RFID technology in the field of Visual Effects for feature film. I was hoping anyone would be willing to answer a couple of small (probably simple) questions.
+
+To begin, I will explain the problem. One major part of the visual effects industry is the digital recreation of the movement of a camera. For any particular shot that an artist is working on, they are usually given a digital representation of the camera move in 3d space (this includes rotation, translation, etc.). There are specific pieces of software that analyze the movement of objects in a particular shot, and using some spacial calculations, extrapolates a "camera solve" that closely replicates the way the camera moved when the shot was actually captured. The problem is, these softwares and camera solves can be very difficult, time consuming, and not always totally accurate.
+
+What I am trying to do is develop a system that can be applied to any camera on set to automatically record the camera's movements, giving a 100% accurate representation of that movement (much like motion capture technology).
+
+The reason I cannot use motion capture technology to solve this problem is that the equipment and setup required is rather bulky, which is something I want to avoid.
+
+My question is: could I use an RFID tag with a series of receivers to triangulate the position of a camera in real time? The triangulation would have to be extremely accurate (less than an inch error).
+
+If yes, how would I go about setting up this system?
+
+Once the data is collected, how would that be transfered into usable digital data?
+
+Thanks in advanced for any help!
+TL;DR: 

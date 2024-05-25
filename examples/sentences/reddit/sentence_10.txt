@@ -1,0 +1,11 @@
+SUBREDDIT: r/legaladvice
+TITLE: Can an employer refuse to offer a check as payment?
+POST: I am trying to find if there is any lawful documentation stating that an employer must offer a check. Right now my company only offers direct deposit as payment, and states simply "they can't" cut a check (and we have a full accounting department that has the ability to physically print checks, so that is not an issue.) 
+
+Normally DD wouldn't be an issue, however, the way the DD works, the payment hits the account nearly 3-5 days after the pay stub is made available, dependent on the bank.
+
+Example:
+Pay period is 1st-15th, the 15th falls on a Saturday. The pay stub won't even be processed until the following Monday (17th), then it takes 2-3 business days (this is mostly dependent on the bank at this point) for the money to actually hit the account. 
+
+This happens almost every pay period, and it is even worse when there is a holiday on a Monday, because everything is pushed back even further.
+TL;DR: 

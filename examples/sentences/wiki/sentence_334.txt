@@ -1,0 +1,7 @@
+Playbrush is an oral care invention for children that is designed to encourage kids to brush their teeth regularly and properly via gamification.
+
+There are three Playbrush devices (The Smart, the Smart sonic and the Smart One X)--all of which are developed by an Austro-British company with the same name. One is a dongle that fits onto the end of a manual toothbrush, whereas the newer device is a Sonic-integrated toothbrush. Both innovations connect via Bluetooth Low Energy to a smartphone or tablet. The movement of the brush is recorded by motion sensors in the dongle which then transmit the data to a mobile device. This is done to control a variety of different games with the intent to encourage children to spend a full two minutes brushing their teeth. The Sonic-integrated toothbrush also provides feedback on pressure.
+
+History
+
+The technology was developed in 2014 and 2015 by Austrian entrepreneur Paul Varga. Varga observed the behaviour of his three-

@@ -1,0 +1,10 @@
+SUBREDDIT: r/self
+TITLE: What software do you use to sift through music when deciding what to keep?
+POST: Hey Reddit, so I've got tons of music that my friends erm, "bought" me... 
+   
+I want to listen to it all and decide what to keep (I'm running out of space and also hate having to continually hit "next" when I'm not feeling something)  
+  
+Here's the issue: I'm having a hard time devoting the time to paying close enough attention to what's playing to make a "yea or nay" decision on a per song or per album basis.  
+  
+Does anyone know of any media player that will prompt me to decide whether a song makes the cut or not after the song finishes?
+TL;DR: 

@@ -1,0 +1,7 @@
+Physically based rendering (PBR) is a  computer graphics approach that seeks to render images in a way that models the flow of light in the real world. Many PBR pipelines aim to achieve photorealism.  Feasible and quick approximations of the bidirectional reflectance distribution function and rendering equation are of mathematical importance in this field. Photogrammetry may be used to help discover and encode accurate optical properties of materials. Shaders may be used to implement PBR principles.
+
+History
+
+Starting in the 1980s, a number of rendering researchers worked on establishing a solid theoretical basis for rendering, including physical correctness. Much of this work was done at the Cornell University Program of Computer Graphics; a 1997 paper from that lab describes the work done at Cornell in this area to that point.
+
+The phrase "Physically Based Rendering" was more widely popularized by Matt Pharr, Greg Humphreys, and Pat Hanrahan in their book of the

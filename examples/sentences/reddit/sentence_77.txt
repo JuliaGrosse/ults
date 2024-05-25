@@ -1,0 +1,16 @@
+SUBREDDIT: r/loseit
+TITLE: Fitness trackers and actual calorie consumption
+POST: Like me, I think the majority of people seeking to lose weight have a larger issue with overeating than not moving enough.  It's the same old thing we always state and restate - it's easier to just not eat the 300 cals of cookies than jog for half an hour.
+
+So why are so many people thinking a fitness tracker is going to help them lose weight?  Eating 2500 a day, and being keenly aware that you're burning 2500 a day is not going to change anything.
+
+I tried it myself, and it didn't help *for me* - not without eating less - which I can do without a fitness tracker.
+
+So here's the issue, and my question... Is there a fitness tracker that will alert and remind me on my wrist how many calories I have left to eat in the day? 
+
+This information being always readily available with a tap or a swipe would highly drop the barrier to checking MFP (which I know is already low, but considering I'm struggling with this...).
+
+So far, it seems fitness trackers simply only track an upward marching "calories burned so far".  Which is not THAT helpful for weight loss when diet is far more influential to the process.
+
+I'm not an app developer, but it seems trivial to me to just make it an option/screen data point available on the tracker that just pulls from the app or MyFitnessPal.  It's ONE number, and everything else is already synced anyway.
+TL;DR: 

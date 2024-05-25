@@ -1,0 +1,6 @@
+SUBREDDIT: r/AskReddit
+TITLE: What is a good programming language to learn?
+POST: As it currently stands, I have no means of affording class. Instead of just waiting until such a time that I can, I'm going to try doing things for myself in the meantime, taking piano lessons, reading jazz fake books, and one of the things I want to do is get back into programming. 
+
+I was an IT Intern for an electrical contracting company for about 8 months before being laid off after they closed some major contracts. My initial job was to pick up the slack, but after about a couple months of being there, they didn't have much else for me to do aside from maintaining SIM card phone lists (the company was T-Mobile at the time) and maintaining the IT office. So they put me on software analysis. First Microsoft Infopath, then a few others, and eventually they had me try out SharePoint. They wanted to use it for the company, so they set up a mock server, and I messed around in that. Once I had a good handle on that, I made some applications using VB.NET to expedite some command line functions for importing templates and other miscellaneous tasks for SharePoint. I know a fair bit of VB.NET, a tiny bit of C#.NET, but haven't used either in a couple years now, so what should I look into (re)learning, and how can I go about learning/using it?
+TL;DR: 

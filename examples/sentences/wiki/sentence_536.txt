@@ -1,0 +1,8 @@
+The Sagan standard is a neologism abbreviating the aphorism that "extraordinary claims require extraordinary evidence" (ECREE).  It is named after science communicator Carl Sagan who used the exact phrase on his television program Cosmos.
+
+Similar statements were previously made by figures such as Théodore Flournoy in 1899, Pierre-Simon Laplace in 1814, and Thomas Jefferson in 1808.  The formulation "Extraordinary claims require extraordinary proof" was used just two years prior to Sagan, by sociologist Marcello Truzzi, in 1978.
+
+Application
+The Sagan standard, according to Tressoldi (2011), "is at the heart of the scientific method, and a model for critical thinking, rational thought and skepticism everywhere".
+
+ECREE is related to Occam's razor in the sense that according to such a heuristic, simpler explanations are preferred to more complicated ones. Only in situations where extraordinary evidence exists would an extraordinary claim be the

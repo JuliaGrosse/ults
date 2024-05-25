@@ -1,0 +1,6 @@
+Robert Tienwen Chien (November 20, 1931  – December 8, 1983) was an American computer scientist concerned largely with research in information theory, fault-tolerance, and artificial intelligence (AI), director of the Coordinated Science Laboratory (CSL) at the University of Illinois at Urbana–Champaign, and known for his invention of the Chien search and seminal contributions to the PMC model in system level fault diagnosis.
+
+Biography
+Robert Tienwen Chien was born in Wuxi, Jiangsu, China as the youngest of eight children, and emigrated to the United States in 1952 to continue his technical studies, enrolling at the University of Illinois at Urbana–Champaign.   He received his B.S. in electrical engineering in 1954, and continued graduate studies at Illinois, receiving his A.M in Mathematics in 1957, and his Ph.D. in electrical engineering in 1958.
+
+He worked as a research

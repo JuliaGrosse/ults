@@ -1,0 +1,8 @@
+Budgie is an independent, free and open-source desktop environment for Linux and other Unix-like operating systems. Budgie is developed by the Buddies of Budgie organization, which is composed of a team of contributors from Linux distributions such as Fedora, Solus, Debian, and Arch Linux. Its design emphasizes simplicity, minimalism, and elegance.
+
+History 
+Budgie was created by Ikey Doherty as the default desktop environment for his new Linux distribution, EvolveOS, eventually renamed to Solus. The first version of Budgie was released on. Early versions were slow and prone to crashes, though speed and reliability would improve with successive releases.
+
+On, it was announced that Ikey had ceased communication with the rest of the Solus team for unknown reasons. Joshua Strobl, one of the Solus core team members, would take up the responsibility of continuing Budgie's development after Ikey's departure.
+
+On, Joshua announced that the

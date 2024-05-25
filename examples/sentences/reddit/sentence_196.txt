@@ -1,0 +1,12 @@
+SUBREDDIT: r/AskReddit
+TITLE: Reddit, I think I'm ready to switch back to a Windows 7 laptop after switching to OSX 4 years ago. Thoughts?
+POST: So heres the lowdown:
+
+I own a 2006 15-inch Macbook pro. It survived four years of college and the abuse that entails wonderfully. However, It's age is starting to show and I will be starting a new job soon and think it's time to upgrade. I looked into the price of a new Macbook pro 15 inch with all the features I would want (500 gb HD, at least 4 but maybe more gigs of RAM) and it's like $2700.
+
+I bootcamped my mac and installed Windows 7, and it makes me think "Hey, maybe I could save a whole bunch of money and get an even faster laptop!" So with that thought, what are some windows machines that are comparable or better in terms of speed?
+
+The last thing is design. The macbook pro is beautiful and works well. Are there any windows machines that can match that level of design and quality?
+
+NB: I will also use it for some gaming, so something that can play all the latest stuff is a big plus.
+TL;DR: 
