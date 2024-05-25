@@ -27,10 +27,10 @@ See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ult
 ```diff
 from ults import ULTS
 
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf").to(DEVICE)
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
 model = AutoModelForCausalLM.from_pretrained(
   "meta-llama/Llama-2-7b-hf", torch_dtype=torch.bfloat16
-).to(DEVICE)
+)
 model.eval()
 
 text = "Moose is a"
@@ -42,6 +42,7 @@ model_inputs = tokenizer(text, return_tensors="pt")
 -    num_beams=5,
 -    max_new_tokens=40,
 -)
+-best_sequence = output.sequences
 
 +# ULTS
 +ults = ULTS(
@@ -50,7 +51,7 @@ model_inputs = tokenizer(text, return_tensors="pt")
 +    max_tokens=40,
 +    vocab_size=tokenizer.vocab_size,
 +)
-+best_sequence, best_loglik, n_llm_calls = ults.search()
++best_sequence, total_loglik, n_llm_calls = ults.search()
 
 context_len = model_inputs["input_ids"].shape[-1]
 generated_tokens = best_sequence[0, context_len:]

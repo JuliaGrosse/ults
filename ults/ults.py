@@ -16,8 +16,11 @@ class ULTS:
         model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids".
         max_tokens: Maximum number of tokens to generate.
         vocab_size: Vocabulary size. This should be your `tokenizer.vocab_size` or `len(tokenizer)`.
-        max_beams: Maximum number of nodes to expand per level.
+        max_beam_size: Maximum number of nodes to expand per level.
         epsilon: Confidence level for termination.
+        prior_kind: "dirichlet" or "empirical".
+        prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
+        prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
     """
 
@@ -33,7 +36,6 @@ class ULTS:
         prior_dirichlet_alpha: float = 0.0001,
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
-        device: str | None = None,
     ):
         if prior_kind == "empirical" and prior_empirical_llm_samples is None:
             raise ValueError(
@@ -53,12 +55,7 @@ class ULTS:
         self.max_beam_size = max_beam_size
         self.used_max_beam_size = np.zeros(self.depth + 1)
         self.pruned_depth = -1
-
-        if device is None:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        else:
-            self.device = device
-
+        self.device = next(model.parameters()).device
         self.tree = nx.DiGraph()
         self.tree.add_node(
             "0",

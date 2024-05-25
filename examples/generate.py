@@ -61,7 +61,6 @@ ults = ULTS(
     prior_kind="dirichlet",
     prior_dirichlet_alpha=0.0001,
     sample_size=1000,
-    device="cuda",
 )
 # Generation results
 sequence, total_loglik, n_llm_calls = ults.search()
@@ -80,8 +79,10 @@ logprobs = logprobs[0, (context_len - 1) : -1, :]
 loglik = torch.sum(logprobs[torch.arange(len(logprobs)), generated_tokens]).item()
 
 # Print results
+print()
 print(f'Context: "{context}"')
 print(
     f"Loglik: {loglik:.4f}, total loglik: {total_loglik:.4f}, num. LLM calls: {n_llm_calls}"
 )
 print(f'Generated: "{tokenizer.decode(generated_tokens)}"')
+print()
