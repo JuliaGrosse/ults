@@ -93,7 +93,7 @@ model_inputs = tokenizer(context, return_tensors="pt")
 ults = ULTS(
     model=model,
     model_inputs=model_inputs,
-    max_tokens=20,
+    max_tokens=40,
     vocab_size=tokenizer.vocab_size,
     max_beam_size=5,
     epsilon=0.1,
@@ -108,16 +108,16 @@ sequence, _, n_llm_calls = ults.search()
 ########################################################################################
 # Evaluate log likelihood of generated tokens
 ########################################################################################
-n = model_inputs["input_ids"].shape[-1]
+context_len = model_inputs["input_ids"].shape[-1]
+generated_tokens = sequence[0, context_len:]
 
 with torch.no_grad():
     logprobs = torch.log_softmax(model(sequence).logits, dim=-1)
 
 # Logprobs of the generated tokens only (without the context)
-logprobs = logprobs[0, -(n + 1) :, :]
-loglik = torch.sum(logprobs[torch.arange(n), sequence[0, -n:]]).cpu()
+logprobs = logprobs[0, context_len:, :]
+loglik = torch.sum(logprobs[torch.arange(len(logprobs)), generated_tokens]).item()
 
-generated_tokens = sequence[0, -(n + 1) :]
 print(f'Context: "{context}"')
 print(f"Loglik: {loglik:.4f}")
 print(f'Generated: "{tokenizer.decode(generated_tokens)}"')
