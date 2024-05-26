@@ -43,6 +43,7 @@ class ULTS:
             )
 
         self.model = model
+        self.model_inputs = model_inputs
         self.epsilon = epsilon
         self.depth = max_tokens
         self.width = vocab_size
@@ -233,6 +234,10 @@ class ULTS:
             logprobs = torch.log_softmax(self.model(tokens).logits, dim=-1)
 
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
+
+        if tokens.shape[-1] == self.model_inputs["input_ids"].shape[-1]:
+            self.tree.nodes["0"]["loglike"] = old_logprobs.item()
+
         new_logprobs = old_logprobs + logprobs[0, -1, :]
         top_indices = torch.topk(new_logprobs, self.buffer_size).indices
 
