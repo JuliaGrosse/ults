@@ -235,6 +235,9 @@ class ULTS:
 
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
 
+        # Record context's loglik in the tree's root
+        # Useful to cheaply compute the generated sequence's loglik since ULTS'
+        # leaf record the *total* loglik (including the context's)
         if tokens.shape[-1] == self.model_inputs["input_ids"].shape[-1]:
             self.tree.nodes["0"]["loglike"] = old_logprobs.item()
 
