@@ -63,12 +63,13 @@ class ULTS:
             tokens = torch.ones((1, 1), dtype=torch.long, device=self.device)
             tokens *= model.config.decoder_start_token_id
             self.encoder_inputs = model_inputs["input_ids"].to(self.device)
+            # Cache encoder outputs since it is fixed.
+            # (Used only to condition the generation process in the decoder.)
+            self.encoder_outputs = model.encoder(**model_inputs)
         else:
             tokens = model_inputs["input_ids"].to(self.device)
             self.encoder_inputs = None
-
-        # For caching
-        self.encoder_outputs = None
+            self.encoder_outputs = None
 
         self.tree = nx.DiGraph()
         self.tree.add_node(
@@ -244,10 +245,11 @@ class ULTS:
 
         with torch.no_grad():
             if self.is_encoder_decoder:
-                if self.encoder_outputs is None:
-                    outputs = self.model(
-                        input_ids=self.encoder_inputs, decoder_input_ids=tokens
-                    )
+                outputs = self.model(
+                    input_ids=self.encoder_inputs,
+                    decoder_input_ids=tokens,
+                    encoder_outputs=self.encoder_outputs,
+                )
             else:
                 outputs = self.model(input_ids=tokens)
 

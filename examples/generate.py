@@ -59,8 +59,9 @@ model = MODEL_CLS.from_pretrained(
 
 model.eval()
 
-tokenizer.pad_token = tokenizer.eos_token
-model.config.pad_token_id = tokenizer.eos_token_id
+if args.llm != "t5":
+    tokenizer.pad_token = tokenizer.eos_token
+    model.config.pad_token_id = tokenizer.eos_token_id
 
 if args.llm == "t5":
     context = "Translate English to German: My name is Wolfgang and I live in Berlin"
