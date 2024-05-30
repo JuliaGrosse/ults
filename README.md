@@ -20,7 +20,7 @@ Requires Python > 3.10.
 
 ## Usage
 
-See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Run via `python examples/generate.py`. You need to adapt the `from_pretrained` lines to point Huggingface or your own local cache.
+See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Run via `python examples/generate.py`.
 
 #### Quickstart snippet
 
