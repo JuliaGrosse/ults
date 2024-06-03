@@ -1,11 +1,12 @@
-from collections import UserDict
 import os
-import torch
-from torch.distributions.beta import Beta
-from scipy import stats
-import numpy as np
+
 import networkx as nx
+import numpy as np
+import torch
 import tqdm
+from scipy import stats
+from torch.distributions.beta import Beta
+from transformers import BatchEncoding
 
 
 class ULTS:
@@ -13,7 +14,7 @@ class ULTS:
 
     Args:
         model: A Huggingface LLM model.
-        model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids".
+        model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids". This is usually the output of `tokenizer(text)`.
         max_tokens: Maximum number of tokens to generate.
         vocab_size: Vocabulary size. This should be your `tokenizer.vocab_size` or `len(tokenizer)`.
         max_beam_size: Maximum number of nodes to expand per level.
@@ -28,7 +29,7 @@ class ULTS:
     def __init__(
         self,
         model: torch.nn.Module,
-        model_inputs: UserDict,
+        model_inputs: BatchEncoding,
         max_tokens: int,
         vocab_size: int,
         max_beam_size: int = 5,
@@ -45,7 +46,6 @@ class ULTS:
             )
 
         self.model = model
-        self.model_inputs = model_inputs
         self.is_encoder_decoder = model.config.is_encoder_decoder
         self.epsilon = epsilon
         self.depth = max_tokens
@@ -70,7 +70,7 @@ class ULTS:
             self.encoder_inputs = model_inputs["input_ids"].to(self.device)
             # Cache encoder outputs since it is fixed.
             # (Used only to condition the generation process in the decoder.)
-            self.encoder_outputs = model.encoder(**model_inputs)
+            self.encoder_outputs = model.encoder(**model_inputs.to(self.device))
         else:
             tokens = model_inputs["input_ids"].to(self.device)
             self.encoder_inputs = None
@@ -89,11 +89,11 @@ class ULTS:
         )
         self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
 
-    def init_prior(self) -> torch.Tensor:
+    def init_prior(self) -> np.ndarray:
         """Build the approximate prior over Delta or load if already exists.
 
         Returns:
-            beta_params: Ndarray of shape (depth, 4). Where each level contains
+            beta_params: Float ndarray of shape (depth, 4). Where each level contains
                 Beta's `(a, b, loc, scale)` parameters.
         """
         DIRNAME = ".cache/priors"
@@ -104,7 +104,12 @@ class ULTS:
             FNAME = f"{DIRNAME}/prior_depth{self.depth}_width{self.width}_emp.npy"
 
         if os.path.isfile(FNAME):
-            return np.load(FNAME)
+            prior = np.load(FNAME)
+
+            if isinstance(prior, torch.Tensor):
+                prior = prior.numpy()
+
+            return prior
 
         def sample():
             if self.prior_kind == "dirichlet":
@@ -262,13 +267,6 @@ class ULTS:
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
-
-        # Record context's loglik in the tree's root
-        # Useful to cheaply compute the generated sequence's loglik since ULTS'
-        # leaf record the *total* loglik (including the context's)
-        if tokens.shape[-1] == self.model_inputs["input_ids"].shape[-1]:
-            self.tree.nodes["0"]["loglike"] = old_logprobs.item()
-
         new_logprobs = old_logprobs + logprobs[0, -1, :]
         top_indices = torch.topk(new_logprobs, self.buffer_size).indices
 

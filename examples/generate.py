@@ -1,12 +1,12 @@
 import argparse
-import torch
-import numpy as np
-from transformers import (
-    AutoModelForCausalLM,
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-)
+import glob
+import os
 import random
+
+import numpy as np
+import torch
+from transformers import (AutoModelForCausalLM, AutoModelForSeq2SeqLM,
+                          AutoTokenizer)
 
 import ults
 
@@ -81,30 +81,6 @@ output = ults.generate(
     sample_size=1000,
     output_full_sequence=False,
 )
-
-# Generation results
-sequence, total_loglik, n_llm_calls = ults.search()
-
-# Evaluate log likelihood of generated tokens
-# -------------------------------------------
-# For encoder-decoder arch (like T5), the output is already the generated tokens
-# The input_ids are only used in the encoder, not in the decoder.
-
-if args.llm == "t5":
-    generated_tokens = sequence[0]
-    loglik = total_loglik
-else:
-    context_len = 0 if args.llm == "t5" else model_inputs["input_ids"].shape[-1]
-    generated_tokens = sequence[0, context_len:]
-
-    with torch.no_grad():
-        logprobs = torch.log_softmax(model(sequence).logits, dim=-1)
-
-    # Logprobs of the generated tokens only (without the context)
-    # The `-1` here is because the last seq. index of the logits is for the next word
-    # *after* the last generated word (something we didn't generate!)
-    logprobs = logprobs[0, (context_len - 1) : -1, :]
-    loglik = torch.sum(logprobs[torch.arange(len(logprobs)), generated_tokens]).item()
 
 # Print results
 print()

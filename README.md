@@ -20,10 +20,9 @@ Requires Python > 3.10.
 
 ## Usage
 
-See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Example precomputed priors, compatible with Llama-2-7b, Mistral, and Gemma are available in `examples/.cache/priors`. You need to adapt the `from_pretrained` lines to point Huggingface or your own local cache.
+See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py).
 
-### Quickstart
-
+### Quickstart with the Dirichlet prior
 
 ```diff
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
@@ -54,13 +53,14 @@ model_inputs = tokenizer(text, return_tensors="pt")
 generated_text = tokenizer.decode(generated_sequence[0])
 ```
 
-### Using the empirical prior
+### Using the Empirical Prior
 
 On top of the default Dirichlet priors (agnostic to the LLM), ULTS can also leverage
- empirical priors, specific to the LLM at hand.
+empirical priors, specific to the LLM at hand.
+Example precomputed empirical priors, compatible with [Llama-2-7b](https://huggingface.co/meta-llama/Llama-2-7b-hf), [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1), and [Gemma-7b](https://huggingface.co/google/gemma-7b), are available in `examples/.cache/priors`.
 
 1. First, gather samples of the LLM's softmax outputs from different time steps. Here
-we will use the greedy decoding. See `examples/sample_llm_outputs.py` for a complete example
+   we will use the greedy decoding. See `examples/sample_llm_outputs.py` for a complete example
 
 ```python
 RESULT_DIR = f".cache/llm_output_samples/{DATASET_NAME}_{LLM_NAME}"
@@ -92,11 +92,11 @@ samples = [torch.load(sample) for sample in sample_files]
 torch.save(torch.vstack(samples), f'{RESULT_DIR}/all_samples.pt')
 ```
 
-2. Then, when specify the prior when calling ULTS. Everything else stays the same as in 
-`examples/generate.py`.
+2. Then, when specify the prior when calling ULTS. Everything else stays the same as in
+   `examples/generate.py`.
 
-``` diff
-ults = ULTS(
+```diff
+output = ults.generate(
     ...
 +   prior_kind="empirical",
 +   prior_empirical_llm_samples=torch.load(f'{RESULT_DIR}/all_samples.pt')

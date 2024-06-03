@@ -1,6 +1,7 @@
-import torch
 from collections import UserDict
 from dataclasses import dataclass
+
+import torch
 
 from ults.ults import ULTS
 
