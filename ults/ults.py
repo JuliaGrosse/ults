@@ -89,7 +89,7 @@ class ULTS:
         """Build the approximate prior over Delta or load if already exists.
 
         Returns:
-            beta_params: Float tensor of shape (depth, 4). Where each level contains
+            beta_params: Float ndarray of shape (depth, 4). Where each level contains
                 Beta's `(a, b, loc, scale)` parameters.
         """
         DIRNAME = ".cache/priors"
@@ -196,8 +196,8 @@ class ULTS:
         )
         my_argmax_children_samples = torch.argmax(children_samples, dim=0)
         my_counts = torch.bincount(my_argmax_children_samples)
-        most_commen_index = torch.argmax(my_counts)
-        best_child = children[most_commen_index]
+        most_common_index = torch.argmax(my_counts)
+        best_child = children[most_common_index]
         self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
         self.tree.nodes[node]["best_child"] = best_child
 
