@@ -1,14 +1,12 @@
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-)
-from datasets import load_dataset
+import argparse
+import glob
+import os
+import random
+
 import torch
 import tqdm
-import os
-import glob, random
-
-import argparse
+from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

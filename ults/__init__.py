@@ -1,3 +1,3 @@
-from ults.ults import ULTS
+from ults.functional import ULTSOutput, generate
 
-__all__ = ["ULTS"]
+__all__ = ["generate", "ULTSOutput"]
