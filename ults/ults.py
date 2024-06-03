@@ -23,6 +23,8 @@ class ULTS:
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
+        stop_overall: Use the distribution of the overall maximum to calculate the stopping
+        condition or only the distirbution of the best next observation.
     """
 
     def __init__(
@@ -38,6 +40,7 @@ class ULTS:
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
         stop_at_eos: bool = False,
+        stop_overall: bool = False,
     ):
         if prior_kind == "empirical" and prior_empirical_llm_samples is None:
             raise ValueError(
@@ -62,6 +65,7 @@ class ULTS:
         self.device = next(model.parameters()).device
         self.stop_at_eos = stop_at_eos
         self.eos_token = self.model.config.eos_token_id
+        self.stop_overall = stop_overall
 
         # For encoder-decoder/seq2seq models
         if self.is_encoder_decoder:
@@ -82,6 +86,7 @@ class ULTS:
             tokens=tokens,
             loglike=1,
             samples=np.ones(2),
+            max_samples = np.ones(2),
             depth=0,
             active=True,
             best_child=None,
@@ -193,12 +198,14 @@ class ULTS:
         children_samples = torch.stack(
             [self.tree.nodes[child]["samples"] for child in children]
         )
-        my_argmax_children_samples = torch.argmax(children_samples, dim=0)
+        max_samples = torch.max(children_samples, dim=0)[0]
+        my_argmax_children_samples = torch.max(children_samples, dim=0)[1]
         my_counts = torch.bincount(my_argmax_children_samples)
         most_common_index = torch.argmax(my_counts)
         best_child = children[most_common_index]
         self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
         self.tree.nodes[node]["best_child"] = best_child
+        self.tree.nodes[node]["max_samples"] = max_samples
 
         if not node == "0":
             parent = next(self.tree.predecessors(node))
@@ -365,7 +372,10 @@ class ULTS:
             self.recursive_take_children_max(new_node_name)
 
             # Update the estimate for the probability that we found the optimal path
-            overall_max_samples = self.tree.nodes["0"]["samples"]
+            if self.stop_overall:
+                overall_max_samples = self.tree.nodes["0"]["max_samples"]
+            else:
+                overall_max_samples = self.tree.nodes["0"]["samples"]
             prob_result_nodes = (
                 torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
             )
