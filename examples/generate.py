@@ -1,15 +1,14 @@
-import os
 import argparse
 import torch
 import numpy as np
-import glob
 from transformers import (
     AutoModelForCausalLM,
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
 )
-from ults import ULTS
 import random
+
+import ults
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -70,7 +69,7 @@ else:
 
 model_inputs = tokenizer(context, return_tensors="pt")
 
-ults = ULTS(
+output = ults.generate(
     model=model,
     model_inputs=model_inputs,
     max_tokens=40,
@@ -80,7 +79,9 @@ ults = ULTS(
     prior_kind="dirichlet",
     prior_dirichlet_alpha=0.0001,
     sample_size=1000,
+    output_full_sequence=False,
 )
+
 # Generation results
 sequence, total_loglik, n_llm_calls = ults.search()
 
@@ -108,8 +109,6 @@ else:
 # Print results
 print()
 print(f'Context: "{context}"')
-print(
-    f"Loglik: {loglik:.4f}, total loglik: {total_loglik:.4f}, num. LLM calls: {n_llm_calls}"
-)
-print(f'Generated: "{tokenizer.decode(generated_tokens)}"')
+print(f"Loglik: {output.loglik:.4f}, num. LLM calls: {output.n_llm_calls}")
+print(f'Generated: "{tokenizer.decode(output.sequence[0], skip_special_tokens=True)}"')
 print()
