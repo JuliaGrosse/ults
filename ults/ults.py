@@ -44,7 +44,6 @@ class ULTS:
 
         self.model = model
         self.model_inputs = model_inputs
-        self.is_encoder_decoder = model.config.is_encoder_decoder
         self.epsilon = epsilon
         self.depth = max_tokens
         self.width = vocab_size
@@ -58,24 +57,10 @@ class ULTS:
         self.used_max_beam_size = np.zeros(self.depth + 1)
         self.pruned_depth = -1
         self.device = next(model.parameters()).device
-
-        # For encoder-decoder/seq2seq models
-        if self.is_encoder_decoder:
-            tokens = torch.ones((1, 1), dtype=torch.long, device=self.device)
-            tokens *= model.config.decoder_start_token_id
-            self.encoder_inputs = model_inputs["input_ids"].to(self.device)
-            # Cache encoder outputs since it is fixed.
-            # (Used only to condition the generation process in the decoder.)
-            self.encoder_outputs = model.encoder(**model_inputs)
-        else:
-            tokens = model_inputs["input_ids"].to(self.device)
-            self.encoder_inputs = None
-            self.encoder_outputs = None
-
         self.tree = nx.DiGraph()
         self.tree.add_node(
             "0",
-            tokens=tokens,
+            tokens=model_inputs["input_ids"].to(self.device),
             loglike=1,
             samples=np.ones(2),
             depth=0,
@@ -89,7 +74,7 @@ class ULTS:
         """Build the approximate prior over Delta or load if already exists.
 
         Returns:
-            beta_params: Ndarray of shape (depth, 4). Where each level contains
+            beta_params: Float tensor of shape (depth, 4). Where each level contains
                 Beta's `(a, b, loc, scale)` parameters.
         """
         DIRNAME = ".cache/priors"
@@ -117,7 +102,7 @@ class ULTS:
                 )
 
         print("Cache not found. Computing the prior...")
-        beta_params = np.ones((self.depth, 4))
+        beta_params = torch.ones((self.depth, 4))
 
         for d in tqdm.trange(self.depth):
             ps = sample()
@@ -191,8 +176,8 @@ class ULTS:
         )
         my_argmax_children_samples = torch.argmax(children_samples, dim=0)
         my_counts = torch.bincount(my_argmax_children_samples)
-        most_common_index = torch.argmax(my_counts)
-        best_child = children[most_common_index]
+        most_commen_index = torch.argmax(my_counts)
+        best_child = children[most_commen_index]
         self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
         self.tree.nodes[node]["best_child"] = best_child
 
@@ -243,20 +228,11 @@ class ULTS:
         """
         self.model.eval()
         tokens.to(self.device)
+        nb_tokens = tokens.size(-1)
 
         with torch.no_grad():
-            if self.is_encoder_decoder:
-                outputs = self.model(
-                    input_ids=self.encoder_inputs,
-                    decoder_input_ids=tokens,
-                    encoder_outputs=self.encoder_outputs,
-                )
-            else:
-                outputs = self.model(input_ids=tokens)
+            logprobs = torch.log_softmax(self.model(tokens).logits, dim=-1)
 
-            logprobs = torch.log_softmax(outputs.logits, dim=-1)
-
-        nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
 
         # Record context's loglik in the tree's root
