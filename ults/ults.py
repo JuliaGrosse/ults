@@ -22,6 +22,7 @@ class ULTS:
         prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
+        stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
     """
 
     def __init__(
@@ -36,6 +37,7 @@ class ULTS:
         prior_dirichlet_alpha: float = 0.0001,
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
+        stop_at_eos: bool = False,
     ):
         if prior_kind == "empirical" and prior_empirical_llm_samples is None:
             raise ValueError(
@@ -58,6 +60,8 @@ class ULTS:
         self.used_max_beam_size = np.zeros(self.depth + 1)
         self.pruned_depth = -1
         self.device = next(model.parameters()).device
+        self.stop_at_eos = stop_at_eos
+        self.eos_token = self.model.config.eos_token_id
 
         # For encoder-decoder/seq2seq models
         if self.is_encoder_decoder:
@@ -300,7 +304,9 @@ class ULTS:
                 self.set_nodes_to_inactive()
 
             # Add children (unless we are at the leaf level)
-            if depth < self.depth:
+            if depth < self.depth and (
+                new_node_tokens[0, -1] != self.eos_token or not self.stop_at_eos
+            ):
                 # predict the log likelihood for the children using the LLM
                 n_llm_calls += 1
                 child_depth = depth + 1
@@ -332,10 +338,11 @@ class ULTS:
                 for i in range(self.buffer_size):
                     child_obs = children_observations[i]
                     child_name = new_node_name + "*" + str(i)
+                    child_tokens = children_tokens[i][None, :]
 
                     self.tree.add_node(
                         child_name,
-                        tokens=children_tokens[i][None, :],
+                        tokens=child_tokens,
                         loglike=child_obs,
                         samples=children_samples[i],
                         depth=child_depth,
@@ -347,7 +354,9 @@ class ULTS:
 
                     # If the child is a leaf node, add it to the result_nodes and
                     # potentially update the best observed result so far
-                    if child_depth == self.depth:
+                    if child_depth == self.depth or (
+                        self.stop_at_eos and child_tokens[0, -1] == self.eos_token
+                    ):
                         if child_obs > best_observed_value:
                             best_path = children_tokens[i][None, :]
                             best_observed_value = child_obs.item()
