@@ -22,7 +22,7 @@ Requires Python > 3.10.
 
 See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Run via `python examples/generate.py`. You need to adapt the `from_pretrained` lines to point Huggingface or your own local cache.
 
-#### Quickstart snippet
+### Quickstart with the Dirichlet prior
 
 ```diff
 from ults import ULTS
@@ -58,9 +58,55 @@ generated_tokens = best_sequence[0, context_len:]
 generated_text = tokenizer.decode(generated_tokens)
 ```
 
-### Using the Empirical Prior
+### Using the empirical prior
 
-TODO!
+On top of the default Dirichlet priors (agnostic to the LLM), ULTS can also leverage
+ empirical priors, specific to the LLM at hand.
+
+1. First, gather samples of the LLM's softmax outputs from different time steps. Here
+we will use the greedy decoding. See `examples/sample_llm_outputs.py` for a complete example
+
+```python
+RESULT_DIR = f".cache/llm_output_samples/{DATASET_NAME}_{LLM_NAME}"
+
+# Samples of contexts from your dataset
+contexts: List[str]
+
+for idx, context in enumerate(contexts):
+    input_ids = tokenizer(sentence[sent_key], return_tensors="pt")["input_ids"]
+
+    # `n_tokens` is the max. depth of the tree that you want to optimize on
+    # i.e., the max number of tokens you want to generate with ULTS
+    for d in range(n_tokens):
+        with torch.no_grad():
+            outputs = torch.softmax(model(input_ids).logits, dim=-1)
+
+        # Save the last softmax output (this is our empirical sample for depth `d`)
+        outputs = outputs[0, -1, :]
+        torch.save(outputs, f"{RESULT_DIR}/sample_index{idx}_depth{d}.pt")
+
+        # Continue greedy generation
+        index = torch.argmax(qualities)
+        model_input = torch.cat([model_input, index.expand(1, 1)], dim=1)
+
+# Stack them together into a (n_samples*n_tokens, vocab_size) tensor
+import glob, random
+sample_files = glob.glob(f"{RESULT_DIR}/sample_*.pt")
+samples = [torch.load(sample) for sample in sample_files]
+torch.save(torch.vstack(samples), f'{RESULT_DIR}/all_samples.pt')
+```
+
+2. Then, when specify the prior when calling ULTS. Everything else stays the same as in 
+`examples/generate.py`.
+
+``` diff
+ults = ULTS(
+    ...
++   prior_kind="empirical",
++   prior_empirical_llm_samples=torch.load(f'{RESULT_DIR}/all_samples.pt')
+    ...
+)
+```
 
 ## Caveats
 

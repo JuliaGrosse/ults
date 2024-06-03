@@ -6,6 +6,7 @@ from datasets import load_dataset
 import torch
 import tqdm
 import os
+import glob, random
 
 import argparse
 
@@ -78,8 +79,13 @@ for i, sentence in tqdm.tqdm(enumerate(dataset)):
         with torch.no_grad():
             model_output = torch.softmax(model(input_ids=model_input).logits, dim=-1)
 
-        qualities = model_output[0, -1, :]
-        index = torch.argmax(qualities)
+        sample = model_output[0, -1, :]
+        index = torch.argmax(sample)
         model_input = torch.cat([model_input, index.expand(1, 1)], dim=1)
 
-        torch.save(qualities.cpu(), f"{RES_DIR}/qualities_index{idx}_depth{d}.pt")
+        torch.save(sample.cpu(), f"{RES_DIR}/sample_index{idx}_depth{d}.pt")
+
+# Stack them together into a (n_samples*n_tokens, vocab_size) tensor
+sample_files = glob.glob(f"{RES_DIR}/sample_*.pt")
+samples = [torch.load(sample) for sample in sample_files]
+torch.save(torch.vstack(samples), f"{RES_DIR}/all_samples.pt")
