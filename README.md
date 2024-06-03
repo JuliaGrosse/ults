@@ -20,12 +20,13 @@ Requires Python > 3.10.
 
 ## Usage
 
-See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Example precomputed priors, compatible with Llama-2-7b, Mistral, and Gemma are available in `examples/.cache/priors`. You need to adapt the `from_pretrained` lines to point Huggingface or your own local cache.
+See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ults/blob/main/examples/generate.py). Run via `python examples/generate.py`.
 
-### Quickstart
-
+### Quickstart with the Dirichlet prior
 
 ```diff
+from ults import ULTS
+
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
 model = AutoModelForCausalLM.from_pretrained(
   "meta-llama/Llama-2-7b-hf", torch_dtype=torch.bfloat16
@@ -35,23 +36,26 @@ model.eval()
 text = "Moose is a"
 model_inputs = tokenizer(text, return_tensors="pt")
 
+-# Beam search
 -output = model.generate(
 -    **model_inputs,
 -    num_beams=5,
 -    max_new_tokens=40,
 -)
--generated_sequence = output.sequences
+-best_sequence = output.sequences
 
-+import ults
-+output = ults.generate(
++# ULTS
++ults = ULTS(
 +    model=model,
 +    model_inputs=model_inputs,
 +    max_tokens=40,
 +    vocab_size=tokenizer.vocab_size,
 +)
-+generated_sequence = output.sequence
++best_sequence, total_loglik, n_llm_calls = ults.search()
 
-generated_text = tokenizer.decode(generated_sequence[0])
+context_len = model_inputs["input_ids"].shape[-1]
+generated_tokens = best_sequence[0, context_len:]
+generated_text = tokenizer.decode(generated_tokens)
 ```
 
 ### Using the empirical prior
