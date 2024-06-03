@@ -107,6 +107,3 @@ output = ults.generate(
 ## Caveats
 
 1. Currently doesn't support batch generation.
-2. Currently only supports Huggingface's `AutoModelForCausalLM`.
-   1. E.g., supports Llama-2, Llama-3, Gemma, GPTs, Mistrals, etc.
-   2. But, encoder-decoder architectures like T5 are not currently supported.
