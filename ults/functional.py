@@ -24,6 +24,7 @@ def generate(
     prior_empirical_llm_samples: torch.Tensor | None = None,
     sample_size: int = 1000,
     output_full_sequence: bool = False,
+    stopping_criterion: str = "next",
 ) -> ULTSOutput:
     """ULTS: Uncertainty-guided Likelihood-Tree Search.
 
@@ -40,6 +41,9 @@ def generate(
         sample_size: Number of posterior samples to use.
         output_full_sequence: Whether to output the full sequence (context + generated).
             The outputted loglik will reflect this.
+        stopping_criterion: "next" or "max". "next": terminate as soon as the next observation doesn't
+            improve the result anymore (with probability 1-epsilon). "max": terminate as soon as
+            the maximum is found with probability 1-epsilon.
 
     Returns:
         ults_output: A dataclass containing `sequence`, `loglik`, and `n_llm_calls`.
@@ -55,6 +59,7 @@ def generate(
         prior_dirichlet_alpha=prior_dirichlet_alpha,
         prior_empirical_llm_samples=prior_empirical_llm_samples,
         sample_size=sample_size,
+        stopping_criterion = stopping_criterion,
     )
 
     # Generation results --- full sequence and total_loglik include context
