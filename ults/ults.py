@@ -17,14 +17,15 @@ class ULTS:
         max_tokens: Maximum number of tokens to generate.
         vocab_size: Vocabulary size. This should be your `tokenizer.vocab_size` or `len(tokenizer)`.
         max_beam_size: Maximum number of nodes to expand per level.
-        epsilon: Confidence level for termination.
+        epsilon: Confidence level for stopping criterion.
         prior_kind: "dirichlet" or "empirical".
         prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
-        stop_overall: Use the distribution of the overall maximum to calculate the stopping
-        condition or only the distirbution of the best next observation.
+        stopping_criterion: "next" or "max". "next": terminate as soon as the next observation doesn't
+            improve the result anymore (with probability 1-epsilon). "max": terminate as soon as
+            the maximum is found with probability 1-epsilon.
     """
 
     def __init__(
@@ -40,7 +41,7 @@ class ULTS:
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
         stop_at_eos: bool = False,
-        stop_overall: bool = False,
+        stopping_criterion: str = "next",
     ):
         if prior_kind == "empirical" and prior_empirical_llm_samples is None:
             raise ValueError(
@@ -65,7 +66,7 @@ class ULTS:
         self.device = next(model.parameters()).device
         self.stop_at_eos = stop_at_eos
         self.eos_token = self.model.config.eos_token_id
-        self.stop_overall = stop_overall
+        self.stopping_criterion = stopping_criterion
 
         # For encoder-decoder/seq2seq models
         if self.is_encoder_decoder:
@@ -199,9 +200,9 @@ class ULTS:
             [self.tree.nodes[child]["samples"] for child in children]
         )
         max_samples = torch.max(children_samples, dim=0)[0]
-        my_argmax_children_samples = torch.max(children_samples, dim=0)[1]
-        my_counts = torch.bincount(my_argmax_children_samples)
-        most_common_index = torch.argmax(my_counts)
+        argmax_children_samples = torch.max(children_samples, dim=0)[1]
+        counts = torch.bincount(argmax_children_samples)
+        most_common_index = torch.argmax(counts)
         best_child = children[most_common_index]
         self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
         self.tree.nodes[node]["best_child"] = best_child
@@ -372,7 +373,7 @@ class ULTS:
             self.recursive_take_children_max(new_node_name)
 
             # Update the estimate for the probability that we found the optimal path
-            if self.stop_overall:
+            if self.stopping_criterion = "max":
                 overall_max_samples = self.tree.nodes["0"]["max_samples"]
             else:
                 overall_max_samples = self.tree.nodes["0"]["samples"]
