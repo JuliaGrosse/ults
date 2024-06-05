@@ -38,7 +38,7 @@ class ULTS:
         prior_dirichlet_alpha: float = 0.0001,
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
-        stop_at_eos: bool = False,
+        stop_at_eos: bool = True,
     ):
         if prior_kind == "empirical" and prior_empirical_llm_samples is None:
             raise ValueError(
