@@ -5,8 +5,7 @@ import random
 
 import numpy as np
 import torch
-from transformers import (AutoModelForCausalLM, AutoModelForSeq2SeqLM,
-                          AutoTokenizer)
+from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 
 import ults
 
@@ -55,7 +54,6 @@ tokenizer = AutoTokenizer.from_pretrained(
 model = MODEL_CLS.from_pretrained(
     MODEL_PATH, torch_dtype=torch.bfloat16, local_files_only=LOCAL_FILE
 ).to(DEVICE)
-assert len(tokenizer) == model.config.vocab_size
 
 model.eval()
 

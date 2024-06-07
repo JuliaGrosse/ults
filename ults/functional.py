@@ -17,8 +17,8 @@ def generate(
     model: torch.nn.Module,
     model_inputs: UserDict,
     max_tokens: int,
-    vocab_size: int,
     max_beam_size: int = 5,
+    vocab_size: int | None = None,
     epsilon: float = 0.1,
     prior_kind: str = "dirichlet",
     prior_dirichlet_alpha: float = 0.0001,
@@ -33,8 +33,9 @@ def generate(
         model: A Huggingface LLM model.
         model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids".
         max_tokens: Maximum number of tokens to generate.
-        vocab_size: Vocabulary size. This should be your `tokenizer.vocab_size` or `len(tokenizer)`.
         max_beam_size: Maximum number of nodes to expand per level.
+        vocab_size: Vocabulary size. This should be `len(tokenizer)` in most cases.
+            If `None`, then this will be inferred from `model.config.vocab_size`.
         epsilon: Confidence level for termination.
         prior_kind: "dirichlet" or "empirical".
         prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
@@ -51,8 +52,8 @@ def generate(
         model=model,
         model_inputs=model_inputs,
         max_tokens=max_tokens,
-        vocab_size=vocab_size,
         max_beam_size=max_beam_size,
+        vocab_size=vocab_size,
         epsilon=epsilon,
         prior_kind=prior_kind,
         prior_dirichlet_alpha=prior_dirichlet_alpha,

@@ -47,7 +47,6 @@ model_inputs = tokenizer(text, return_tensors="pt")
 +    model=model,
 +    model_inputs=model_inputs,
 +    max_tokens=40,
-+    vocab_size=tokenizer.vocab_size,
 +)
 +generated_sequence = output.sequence
 
