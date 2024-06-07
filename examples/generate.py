@@ -55,6 +55,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 model = MODEL_CLS.from_pretrained(
     MODEL_PATH, torch_dtype=torch.bfloat16, local_files_only=LOCAL_FILE
 ).to(DEVICE)
+assert len(tokenizer) == model.config.vocab_size
 
 model.eval()
 
@@ -73,7 +74,7 @@ output = ults.generate(
     model=model,
     model_inputs=model_inputs,
     max_tokens=40,
-    vocab_size=tokenizer.vocab_size,
+    vocab_size=len(tokenizer),
     max_beam_size=5,
     epsilon=0.1,
     prior_kind="dirichlet",
