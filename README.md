@@ -24,7 +24,7 @@ See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ult
 
 ### Quickstart with the Dirichlet prior
 
-> [!WARNING]
+> [!IMPORTANT]
 > ULTS will first check `.cache/priors` for a precomputed prior with your choices of
 > width (vocab size), depth (max tokens to generate), and $\alpha$ (concentration strength).
 > If not exists, then it will compute and cache the prior --- this might take a while!
