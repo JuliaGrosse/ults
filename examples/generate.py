@@ -1,6 +1,4 @@
 import argparse
-import glob
-import os
 import random
 
 import numpy as np

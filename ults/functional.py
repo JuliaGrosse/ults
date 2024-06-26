@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import UserDict
 from dataclasses import dataclass
 

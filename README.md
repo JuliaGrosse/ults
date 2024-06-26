@@ -13,11 +13,10 @@ Accompanying implementation of the following paper [[ArXiv]](TODO!):
 
 ## Setup
 
-Requires Python >= 3.10.
+Requires Python >= 3.9.
 
 1. Install PyTorch with CUDA, version >= 2.0
-2. Install Huggingface libraries: `pip install transformers datasets tokenizers`
-3. Install this repo: `pip install git+https://github.com/JuliaGrosse/ults.git@main`
+2. Install this package: `pip install git+https://github.com/JuliaGrosse/ults.git@main`
 
 ## Usage
 
