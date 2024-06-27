@@ -24,6 +24,13 @@ See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ult
 
 ### Quickstart with the Dirichlet prior
 
+> [!IMPORTANT]
+> ULTS will first check `.cache/priors` for a precomputed prior with your choices of
+> width (vocab size), depth (max tokens to generate), and $\alpha$ (concentration strength).
+> If not exists, then it will compute and cache the prior --- this might take a while!
+> However, this only needs to be done _once_ for each each of the choices above.
+> In the subsequent generation call, the decoding will be very quick.
+
 ```diff
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
 model = AutoModelForCausalLM.from_pretrained(
