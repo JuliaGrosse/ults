@@ -47,6 +47,10 @@ class ULTS:
             raise ValueError(
                 "`prior_empirical_llm_samples` cannot be `None` for empirical prior."
             )
+        if stopping_criterion not in ["max", "next"]:
+            raise ValueError(
+                "`stopping_criterion` can be `max` or `next`."
+            )
 
         self.model = model
         self.model_inputs = model_inputs
