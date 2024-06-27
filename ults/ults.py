@@ -18,7 +18,8 @@ class ULTS:
         model: A Huggingface LLM model.
         model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids". This is usually the output of `tokenizer(text)`.
         max_tokens: Maximum number of tokens to generate.
-        vocab_size: Vocabulary size. This should be your `tokenizer.vocab_size` or `len(tokenizer)`.
+        vocab_size: Vocabulary size. This should be `len(tokenizer)` in most cases.
+            If `None`, then this will be inferred from `model.config.vocab_size`.
         max_beam_size: Maximum number of nodes to expand per level.
         epsilon: Confidence level for termination.
         prior_kind: "dirichlet" or "empirical".
@@ -33,8 +34,8 @@ class ULTS:
         model: torch.nn.Module,
         model_inputs: BatchEncoding,
         max_tokens: int,
-        vocab_size: int,
         max_beam_size: int = 5,
+        vocab_size: int | None = None,
         epsilon: float = 0.1,
         prior_kind: str = "dirichlet",
         prior_dirichlet_alpha: float = 0.0001,
@@ -51,12 +52,11 @@ class ULTS:
         self.is_encoder_decoder = model.config.is_encoder_decoder
         self.epsilon = epsilon
         self.depth = max_tokens
-        self.width = vocab_size
+        self.width = vocab_size if vocab_size is not None else model.config.vocab_size
         self.prior_kind = prior_kind
         self.prior_dirichlet_alpha = prior_dirichlet_alpha
         self.prior_empirical_llm_samples = prior_empirical_llm_samples
         self.sample_size = sample_size
-        self.vocab = torch.arange(start=0, end=vocab_size)
         self.buffer_size = max_beam_size
         self.max_beam_size = max_beam_size
         self.used_max_beam_size = np.zeros(self.depth + 1)
