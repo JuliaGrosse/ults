@@ -373,7 +373,7 @@ class ULTS:
             self.recursive_take_children_max(new_node_name)
 
             # Update the estimate for the probability that we found the optimal path
-            if self.stopping_criterion = "max":
+            if self.stopping_criterion == "max":
                 overall_max_samples = self.tree.nodes["0"]["max_samples"]
             else:
                 overall_max_samples = self.tree.nodes["0"]["samples"]
