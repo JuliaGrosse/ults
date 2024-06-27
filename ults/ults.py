@@ -26,6 +26,7 @@ class ULTS:
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
+        posterior: Use posterior over inner nodes for acquisition function.
     """
 
     def __init__(
@@ -41,6 +42,7 @@ class ULTS:
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
         stop_at_eos: bool = True,
+        posterior: bool = True,
     ):
         if prior_kind == "empirical" and prior_empirical_llm_samples is None:
             raise ValueError(
@@ -64,6 +66,7 @@ class ULTS:
         self.device = next(model.parameters()).device
         self.stop_at_eos = stop_at_eos
         self.eos_token = self.model.config.eos_token_id
+        self.posterior = posterior
 
         # For encoder-decoder/seq2seq models
         if self.is_encoder_decoder:
@@ -88,6 +91,8 @@ class ULTS:
             active=True,
             best_child=None,
             explored=False,
+            maxsamples=np.ones(2),
+            best_max_child=None,
         )
         self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
 
@@ -158,8 +163,8 @@ class ULTS:
         return beta_params
 
     def recursive_best_child(self, node: str) -> str:
-        """Recursively select the best child node (i.e. the node that has the higest probability
-        to contain the maximum).
+        """Recursively select the best child node (either based on posterior of node or posterior
+        of best descendant).
 
         Args:
             node: The name of the starting (root) node.
@@ -167,31 +172,43 @@ class ULTS:
         Returns:
             node: The name of the best node in the subtree.
         """
-        if self.tree.nodes[node]["best_child"]:
-            return self.recursive_best_child(self.tree.nodes[node]["best_child"])
-
+        if self.posterior:
+            select = "best_max_child"
+        else:
+            select = "best_child"
+        if self.tree.nodes[node][select]:
+            return self.recursive_best_child(self.tree.nodes[node][select])
         children = list(self.tree.successors(node))
-
-        if len(children) > 0:
-            children_samples = torch.stack(
-                [self.tree.nodes[child]["samples"] for child in children]
-            )
-            argmax_children_samples = torch.argmax(children_samples, dim=0).tolist()
-            most_common_index = max(
-                set(argmax_children_samples), key=argmax_children_samples.count
-            )
-            best_child = children[most_common_index]
-
-            return self.recursive_best_child(best_child)
-
+        if children:
+            if self.posterior:
+                max_children_samples = torch.stack(
+                    [self.tree.nodes[child]["max_samples"] for child in children]
+                )
+                max_samples = torch.max(max_children_samples, dim=0)[0]
+                argmax_children_samples = torch.argmax(max_children_samples, dim=0).tolist()
+                most_commen_index_max = max(
+                    set(max_children_samples), key=max_children_samples.count
+                )
+                best_max_child = children[most_commen_index_max]
+                return self.recursive_best_child(best_max_child)
+            else:
+                children_samples = torch.stack(
+                    [self.tree.nodes[child]["samples"] for child in children]
+                )
+                argmax_children_samples = torch.argmax(children_samples, dim=0).tolist()
+                most_commen_index = max(
+                    set(argmax_children_samples), key=argmax_children_samples.count
+                )
+                best_child = children[most_commen_index]
+                return self.recursive_best_child(best_child)
         self.tree.nodes[node]["explored"] = True
-
         return node
 
     def recursive_take_children_max(self, node: str) -> None:
         """Update the distribution over the optimal value of the nodes by replacing it
-        with the distribution of the optimal value of it's best child. (This is only an
-        approximation to the true distribution!)
+        with the distribution of the optimal value of it's best child. (This is only a greedy
+        approximation to the true distribution!). Alternative: Actual posterior in "max_samples"
+        (this is the true distiribution for v!).
 
         Args:
             node: The name of the starting (root) node.
@@ -200,12 +217,24 @@ class ULTS:
         children_samples = torch.stack(
             [self.tree.nodes[child]["samples"] for child in children]
         )
-        my_argmax_children_samples = torch.argmax(children_samples, dim=0)
-        my_counts = torch.bincount(my_argmax_children_samples)
-        most_common_index = torch.argmax(my_counts)
+        argmax_children_samples = torch.max(children_samples, dim=0)[1]
+        counts = torch.bincount(argmax_children_samples)
+        most_common_index = torch.argmax(counts)
         best_child = children[most_common_index]
         self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
         self.tree.nodes[node]["best_child"] = best_child
+
+        max_children_samples = torch.stack(
+            [self.tree.nodes[child]["max_samples"] for child in children]
+        )
+        max_samples = torch.max(max_children_samples, dim=0)[0]
+        self.tree.nodes[node]["max_samples"] = max_samples
+        argmax_children_samples = torch.argmax(max_children_samples, dim=0).tolist()
+        most_commen_index_max = max(
+            set(max_children_samples), key=max_children_samples.count
+        )
+        best_max_child = children[most_commen_index_max]
+        self.tree.nodes[node]["best_max_child"] = best_max_child
 
         if not node == "0":
             parent = next(self.tree.predecessors(node))
@@ -365,7 +394,10 @@ class ULTS:
             self.recursive_take_children_max(new_node_name)
 
             # Update the estimate for the probability that we found the optimal path
-            overall_max_samples = self.tree.nodes["0"]["samples"]
+            if self.posterior:
+                overall_max_samples = self.tree.nodes["0"]["max_samples"]
+            else:
+                overall_max_samples = self.tree.nodes["0"]["samples"]
             prob_result_nodes = (
                 torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
             )
