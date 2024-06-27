@@ -1,14 +1,11 @@
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-)
-from datasets import load_dataset
+import argparse
+import glob
+import os
+
 import torch
 import tqdm
-import os
-import glob, random
-
-import argparse
+from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -45,22 +42,21 @@ model.eval()
 alphabet_size = tokenizer.vocab_size
 
 ## Dataset
-match args.dataset:
-    case "cnn":
-        dataset = load_dataset("ccdv/cnn_dailymail", "3.0.0", split="train")
-        sent_key = "article"
-        max_len = 300
-        n_tokens = 60
-    case "reddit":
-        dataset = load_dataset("CarperAI/openai_summarize_tldr", split="train")
-        sent_key = "prompt"
-        max_len = -1
-        n_tokens = 40
-    case _:
-        dataset = load_dataset("tdtunlp/wikipedia_en")["train"]
-        sent_key = "text"
-        max_len = 200
-        n_tokens = 20
+if args.dataset == "cnn":
+    dataset = load_dataset("ccdv/cnn_dailymail", "3.0.0", split="train")
+    sent_key = "article"
+    max_len = 300
+    n_tokens = 60
+elif args.dataset == "reddit":
+    dataset = load_dataset("CarperAI/openai_summarize_tldr", split="train")
+    sent_key = "prompt"
+    max_len = -1
+    n_tokens = 40
+else:
+    dataset = load_dataset("tdtunlp/wikipedia_en")["train"]
+    sent_key = "text"
+    max_len = 200
+    n_tokens = 20
 
 dataset = dataset.shuffle(seed=42)
 

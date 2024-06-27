@@ -1,6 +1,9 @@
-import torch
+from __future__ import annotations
+
 from collections import UserDict
 from dataclasses import dataclass
+
+import torch
 
 from ults.ults import ULTS
 
@@ -25,6 +28,7 @@ def generate(
     sample_size: int = 1000,
     output_full_sequence: bool = False,
     stopping_criterion: str = "next",
+    stop_at_eos: bool = True,
 ) -> ULTSOutput:
     """ULTS: Uncertainty-guided Likelihood-Tree Search.
 
@@ -44,6 +48,7 @@ def generate(
         stopping_criterion: "next" or "max". "next": terminate as soon as the next observation doesn't
             improve the result anymore (with probability 1-epsilon). "max": terminate as soon as
             the maximum is found with probability 1-epsilon.
+        stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
 
     Returns:
         ults_output: A dataclass containing `sequence`, `loglik`, and `n_llm_calls`.
@@ -60,6 +65,7 @@ def generate(
         prior_empirical_llm_samples=prior_empirical_llm_samples,
         sample_size=sample_size,
         stopping_criterion = stopping_criterion,
+        stop_at_eos=stop_at_eos,
     )
 
     # Generation results --- full sequence and total_loglik include context
