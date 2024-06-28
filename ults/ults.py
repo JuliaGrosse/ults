@@ -268,6 +268,9 @@ class ULTS:
                 outputs.logits[0, -1, self.eos_token] = - math.inf
 
             scores_processed = outputs.logits.clone()
+
+            # Also see:
+            # https://github.com/huggingface/transformers/blob/c54a8ca48eb1b85785f7fdbefb5311f172d19726/src/transformers/generation/logits_process.py#L225-L231
             if not self.stop_at_eos:
                 vocab_tensor = torch.arange(outputs.logits.shape[-1], device=outputs.logits.device)
                 eos_token_mask = torch.isin(vocab_tensor, self.eos_token)
