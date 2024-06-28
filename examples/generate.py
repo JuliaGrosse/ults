@@ -52,6 +52,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 model = MODEL_CLS.from_pretrained(
     MODEL_PATH, torch_dtype=torch.bfloat16, local_files_only=LOCAL_FILE
 ).to(DEVICE)
+
 model.eval()
 
 if args.llm != "t5":

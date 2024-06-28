@@ -18,9 +18,10 @@ class ULTS:
         model: A Huggingface LLM model.
         model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids". This is usually the output of `tokenizer(text)`.
         max_tokens: Maximum number of tokens to generate.
-        vocab_size: Vocabulary size. This should be your `tokenizer.vocab_size` or `len(tokenizer)`.
+        vocab_size: Vocabulary size. This should be `len(tokenizer)` in most cases.
+            If `None`, then this will be inferred from `model.config.vocab_size`.
         max_beam_size: Maximum number of nodes to expand per level.
-        epsilon: Confidence level for termination.
+        epsilon: Confidence level for stopping criterion.
         prior_kind: "dirichlet" or "empirical".
         prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
@@ -35,13 +36,14 @@ class ULTS:
         model: torch.nn.Module,
         model_inputs: BatchEncoding,
         max_tokens: int,
-        vocab_size: int,
         max_beam_size: int = 5,
+        vocab_size: int | None = None,
         epsilon: float = 0.1,
         prior_kind: str = "dirichlet",
         prior_dirichlet_alpha: float = 0.0001,
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
+        stopping_criterion: str = "next",
         stop_at_eos: bool = True,
         acquisition_function: str = "posterior",
     ):
@@ -49,6 +51,7 @@ class ULTS:
             raise ValueError(
                 "`prior_empirical_llm_samples` cannot be `None` for empirical prior."
             )
+
         if acquisition_function not in ["posterior", "posterior_descendant"]:
             raise ValueError(
                 "`acquisition_function` can only be `posterior` or `posterior_descendant`."
@@ -58,12 +61,11 @@ class ULTS:
         self.is_encoder_decoder = model.config.is_encoder_decoder
         self.epsilon = epsilon
         self.depth = max_tokens
-        self.width = vocab_size
+        self.width = vocab_size if vocab_size is not None else model.config.vocab_size
         self.prior_kind = prior_kind
         self.prior_dirichlet_alpha = prior_dirichlet_alpha
         self.prior_empirical_llm_samples = prior_empirical_llm_samples
         self.sample_size = sample_size
-        self.vocab = torch.arange(start=0, end=vocab_size)
         self.buffer_size = max_beam_size
         self.max_beam_size = max_beam_size
         self.used_max_beam_size = np.zeros(self.depth + 1)
@@ -72,6 +74,7 @@ class ULTS:
         self.stop_at_eos = stop_at_eos
         self.eos_token = self.model.config.eos_token_id
         self.acquisition_function = acquisition_function
+
 
         # For encoder-decoder/seq2seq models
         if self.is_encoder_decoder:
@@ -92,6 +95,7 @@ class ULTS:
             tokens=tokens,
             loglike=1,
             samples=np.ones(2),
+            max_samples = np.ones(2),
             depth=0,
             active=True,
             best_child=None,
@@ -392,6 +396,7 @@ class ULTS:
 
             # Update the estimate for the probability that we found the optimal path
             if self.acquisition_function == "posterior":
+
                 overall_max_samples = self.tree.nodes["0"]["max_samples"]
             else:
                 overall_max_samples = self.tree.nodes["0"]["samples"]
