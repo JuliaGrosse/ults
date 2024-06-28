@@ -6,6 +6,7 @@ import networkx as nx
 import numpy as np
 import torch
 import tqdm
+import math
 from scipy import stats
 from torch.distributions.beta import Beta
 from transformers import BatchEncoding
@@ -293,7 +294,18 @@ class ULTS:
             else:
                 outputs = self.model(input_ids=tokens)
 
-            logprobs = torch.log_softmax(outputs.logits, dim=-1)
+
+
+            # Also see:
+            # https://github.com/huggingface/transformers/blob/c54a8ca48eb1b85785f7fdbefb5311f172d19726/src/transformers/generation/logits_process.py#L225-L231
+            if not self.stop_at_eos:
+                scores_processed = outputs.logits.clone()
+                vocab_tensor = torch.arange(outputs.logits.shape[-1], device=outputs.logits.device)
+                eos_token_mask = torch.isin(vocab_tensor, self.eos_token)
+                scores_processed = torch.where(eos_token_mask, -math.inf, outputs.logits)
+                logprobs = torch.log_softmax(scores_processed, dim=-1)
+            else:
+                logprobs = torch.log_softmax(outputs.logits, dim=-1)
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
@@ -368,11 +380,18 @@ class ULTS:
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
 
+                    if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
+                        child_samples = children_observations[i].repeat(
+                            self.sample_size
+                        )
+                    else:
+                        child_samples = children_samples[i]
+
                     self.tree.add_node(
                         child_name,
                         tokens=child_tokens,
                         loglike=child_obs,
-                        samples=children_samples[i],
+                        samples=child_samples,
                         depth=child_depth,
                         active=True,
                         best_child=None,
