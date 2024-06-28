@@ -263,7 +263,12 @@ class ULTS:
             else:
                 outputs = self.model(input_ids=tokens)
 
-            logprobs = torch.log_softmax(outputs.logits, dim=-1)
+            output_logits = outputs.logits
+
+            if not self.stop_at_eos:
+                output_logits[0, self.eos_token] = float('-inf')
+
+            logprobs = torch.log_softmax(output_logits, dim=-1)
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
@@ -339,22 +344,23 @@ class ULTS:
                     child_tokens = children_tokens[i][None, :]
 
                     if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
-                        child_samples = children_observations[i].repeat(self.sample_size)
+                        child_samples = children_observations[i].repeat(
+                            self.sample_size
+                        )
                     else:
                         child_samples = children_samples[i]
 
-                    if (not self.stop_at_eos) and child_tokens[0, -1] != self.eos_token:
-                        self.tree.add_node(
-                            child_name,
-                            tokens=child_tokens,
-                            loglike=child_obs,
-                            samples=child_samples,
-                            depth=child_depth,
-                            active=True,
-                            best_child=None,
-                            explored=False,
-                        )
-                        self.tree.add_edge(new_node_name, child_name)
+                    self.tree.add_node(
+                        child_name,
+                        tokens=child_tokens,
+                        loglike=child_obs,
+                        samples=child_samples,
+                        depth=child_depth,
+                        active=True,
+                        best_child=None,
+                        explored=False,
+                    )
+                    self.tree.add_edge(new_node_name, child_name)
 
                     # If the child is a leaf node, add it to the result_nodes and
                     # potentially update the best observed result so far
