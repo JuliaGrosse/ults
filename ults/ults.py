@@ -267,7 +267,13 @@ class ULTS:
             if not self.stop_at_eos:
                 outputs.logits[0, -1, self.eos_token] = - math.inf
 
-            logprobs = torch.log_softmax(outputs.logits, dim=-1)
+            scores_processed = outputs.logits.clone()
+            if not self.stop_at_eos:
+                vocab_tensor = torch.arange(outputs.logits.shape[-1], device=outputs.logits.device)
+                eos_token_mask = torch.isin(vocab_tensor, self.eos_token)
+                scores_processed = torch.where(eos_token_mask, -math.inf, outputs.logits)
+
+            logprobs = torch.log_softmax(scores_processed, dim=-1)
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
