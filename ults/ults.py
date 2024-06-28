@@ -263,12 +263,10 @@ class ULTS:
             else:
                 outputs = self.model(input_ids=tokens)
 
-            output_logits = outputs.logits
-
             if not self.stop_at_eos:
-                output_logits[0, self.eos_token] = float('-inf')
+                outputs.logits[0, -1, self.eos_token] = - math.inf
 
-            logprobs = torch.log_softmax(output_logits, dim=-1)
+            logprobs = torch.log_softmax(outputs.logits, dim=-1)
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
