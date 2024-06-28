@@ -189,20 +189,20 @@ class ULTS:
                 argmax_children_samples = torch.argmax(
                     max_children_samples, dim=0
                 ).tolist()
-                most_commen_index_max = max(
+                most_common_index_max = max(
                     set(max_children_samples), key=max_children_samples.count
                 )
-                best_max_child = children[most_commen_index_max]
+                best_max_child = children[most_common_index_max]
                 return self.recursive_best_child(best_max_child)
             else:
                 children_samples = torch.stack(
                     [self.tree.nodes[child]["samples"] for child in children]
                 )
                 argmax_children_samples = torch.argmax(children_samples, dim=0).tolist()
-                most_commen_index = max(
+                most_common_index = max(
                     set(argmax_children_samples), key=argmax_children_samples.count
                 )
-                best_child = children[most_commen_index]
+                best_child = children[most_common_index]
                 return self.recursive_best_child(best_child)
         self.tree.nodes[node]["explored"] = True
         return node
@@ -233,10 +233,10 @@ class ULTS:
         max_samples = torch.max(max_children_samples, dim=0)[0]
         self.tree.nodes[node]["max_samples"] = max_samples
         argmax_children_samples = torch.argmax(max_children_samples, dim=0).tolist()
-        most_commen_index_max = max(
+        most_common_index_max = max(
             set(max_children_samples), key=max_children_samples.count
         )
-        best_max_child = children[most_commen_index_max]
+        best_max_child = children[most_common_index_max]
         self.tree.nodes[node]["best_max_child"] = best_max_child
 
         if not node == "0":
