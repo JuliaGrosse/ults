@@ -174,11 +174,11 @@ class ULTS:
             node: The name of the best node in the subtree.
         """
         if self.acquisition_function == "posterior":
-            select = "best_max_child"
+            criterion = "best_max_child"
         else:
-            select = "best_child"
-        if self.tree.nodes[node][select]:
-            return self.recursive_best_child(self.tree.nodes[node][select])
+            criterion = "best_child"
+        if self.tree.nodes[node][criterion]:
+            return self.recursive_best_child(self.tree.nodes[node][criterion])
         children = list(self.tree.successors(node))
         if children:
             if self.acquisition_function == "posterior":
