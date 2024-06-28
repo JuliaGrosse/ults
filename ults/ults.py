@@ -49,6 +49,10 @@ class ULTS:
             raise ValueError(
                 "`prior_empirical_llm_samples` cannot be `None` for empirical prior."
             )
+        if not acquisition_function in ["posterior", "posterior_descendant"]:
+            raise ValueError(
+                "`acquisition_function` can only be `posterior` or `posterior_descendant`."
+            )
 
         self.model = model
         self.is_encoder_decoder = model.config.is_encoder_decoder
