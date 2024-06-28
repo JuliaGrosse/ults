@@ -49,7 +49,7 @@ class ULTS:
             raise ValueError(
                 "`prior_empirical_llm_samples` cannot be `None` for empirical prior."
             )
-        if not acquisition_function in ["posterior", "posterior_descendant"]:
+        if acquisition_function not in ["posterior", "posterior_descendant"]:
             raise ValueError(
                 "`acquisition_function` can only be `posterior` or `posterior_descendant`."
             )
@@ -189,7 +189,6 @@ class ULTS:
                 max_children_samples = torch.stack(
                     [self.tree.nodes[child]["max_samples"] for child in children]
                 )
-                max_samples = torch.max(max_children_samples, dim=0)[0]
                 argmax_children_samples = torch.argmax(
                     max_children_samples, dim=0
                 ).tolist()
@@ -211,7 +210,7 @@ class ULTS:
         self.tree.nodes[node]["explored"] = True
         return node
 
-    def recursive_take_children_max(self, node: str) -> None:
+    def backup(self, node: str) -> None:
         """Update the distribution over the optimal value of the nodes by replacing it
         with the distribution of the optimal value of it's best child. (This is only a greedy
         approximation to the true distribution!). Alternative: Actual posterior in "max_samples"
@@ -245,7 +244,7 @@ class ULTS:
 
         if not node == "0":
             parent = next(self.tree.predecessors(node))
-            self.recursive_take_children_max(parent)
+            self.backup(parent)
 
     def budget_left(self) -> bool:
         """If the number of expanded nodes on the the last level exceeds the maximum
@@ -400,7 +399,7 @@ class ULTS:
                             best_observed_value = child_obs.item()
 
             # Update optimal value distribution of parents
-            self.recursive_take_children_max(new_node_name)
+            self.backup(new_node_name)
 
             # Update the estimate for the probability that we found the optimal path
             if self.acquisition_function == "posterior":
