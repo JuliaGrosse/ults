@@ -28,6 +28,7 @@ def generate(
     sample_size: int = 1000,
     output_full_sequence: bool = False,
     stop_at_eos: bool = True,
+    acquisition_function: str: "posterior",
 ) -> ULTSOutput:
     """ULTS: Uncertainty-guided Likelihood-Tree Search.
 
@@ -45,6 +46,8 @@ def generate(
         output_full_sequence: Whether to output the full sequence (context + generated).
             The outputted loglik will reflect this.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
+        acquisition_function: "posterior" or "posterior_descendant". "posterior": pick child node based on posterior over v.
+        "posterior_descendant": pick child node based on posterior over v of best descendant.
 
     Returns:
         ults_output: A dataclass containing `sequence`, `loglik`, and `n_llm_calls`.
@@ -61,6 +64,7 @@ def generate(
         prior_empirical_llm_samples=prior_empirical_llm_samples,
         sample_size=sample_size,
         stop_at_eos=stop_at_eos,
+        acquisition_function=acquisition_function,
     )
 
     # Generation results --- full sequence and total_loglik include context
