@@ -96,7 +96,7 @@ class ULTS:
             active=True,
             best_child=None,
             explored=False,
-            maxsamples=np.ones(2),
+            max_samples=np.ones(2),
             best_max_child=None,
         )
         self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
@@ -387,6 +387,7 @@ class ULTS:
                         active=True,
                         best_child=None,
                         explored=False,
+                        max_samples=children_samples[i],
                     )
                     self.tree.add_edge(new_node_name, child_name)
 
