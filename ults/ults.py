@@ -338,12 +338,17 @@ class ULTS:
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
 
+                    if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
+                        child_samples = children_observations[i].repeat(self.sample_size)
+                    else:
+                        child_samples = children_samples[i]
+
                     if (not self.stop_at_eos) and child_tokens[0, -1] != self.eos_token:
                         self.tree.add_node(
                             child_name,
                             tokens=child_tokens,
                             loglike=child_obs,
-                            samples=children_samples[i],
+                            samples=child_samples,
                             depth=child_depth,
                             active=True,
                             best_child=None,
