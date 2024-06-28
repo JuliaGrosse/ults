@@ -338,17 +338,18 @@ class ULTS:
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
 
-                    self.tree.add_node(
-                        child_name,
-                        tokens=child_tokens,
-                        loglike=child_obs,
-                        samples=children_samples[i],
-                        depth=child_depth,
-                        active=True,
-                        best_child=None,
-                        explored=False,
-                    )
-                    self.tree.add_edge(new_node_name, child_name)
+                    if (not self.stop_at_eos) and child_tokens[0, -1] != self.eos_token:
+                        self.tree.add_node(
+                            child_name,
+                            tokens=child_tokens,
+                            loglike=child_obs,
+                            samples=children_samples[i],
+                            depth=child_depth,
+                            active=True,
+                            best_child=None,
+                            explored=False,
+                        )
+                        self.tree.add_edge(new_node_name, child_name)
 
                     # If the child is a leaf node, add it to the result_nodes and
                     # potentially update the best observed result so far
