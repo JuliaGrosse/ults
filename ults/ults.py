@@ -236,14 +236,12 @@ class ULTS:
             max_children_samples = torch.stack(
                 [self.tree.nodes[child]["max_samples"] for child in children]
             )
-            max_samples = torch.max(max_children_samples, dim=0)[0]
+            max_samples, argmax_children_samples = torch.max(max_children_samples, dim=0)
             self.tree.nodes[node]["max_samples"] = max_samples
-            argmax_children_samples = torch.argmax(max_children_samples, dim=0).tolist()
-            most_common_index_max = max(
-                set(max_children_samples), key=max_children_samples.count
-            )
-            best_max_child = children[most_common_index_max]
-            self.tree.nodes[node]["best_max_child"] = best_max_child
+            counts = torch.bincount(argmax_children_samples)
+            most_common_index = torch.argmax(counts)
+            best_child = children[most_common_index]
+            self.tree.nodes[node]["best_max_child"] = best_child
 
         if not node == "0":
             parent = next(self.tree.predecessors(node))
@@ -388,6 +386,7 @@ class ULTS:
                         best_child=None,
                         explored=False,
                         max_samples=children_samples[i],
+                        best_max_child=None,
                     )
                     self.tree.add_edge(new_node_name, child_name)
 
