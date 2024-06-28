@@ -217,27 +217,29 @@ class ULTS:
             node: The name of the starting (root) node.
         """
         children = list(self.tree.successors(node))
-        children_samples = torch.stack(
-            [self.tree.nodes[child]["samples"] for child in children]
-        )
-        argmax_children_samples = torch.max(children_samples, dim=0)[1]
-        counts = torch.bincount(argmax_children_samples)
-        most_common_index = torch.argmax(counts)
-        best_child = children[most_common_index]
-        self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
-        self.tree.nodes[node]["best_child"] = best_child
 
-        max_children_samples = torch.stack(
-            [self.tree.nodes[child]["max_samples"] for child in children]
-        )
-        max_samples = torch.max(max_children_samples, dim=0)[0]
-        self.tree.nodes[node]["max_samples"] = max_samples
-        argmax_children_samples = torch.argmax(max_children_samples, dim=0).tolist()
-        most_common_index_max = max(
-            set(max_children_samples), key=max_children_samples.count
-        )
-        best_max_child = children[most_common_index_max]
-        self.tree.nodes[node]["best_max_child"] = best_max_child
+        if self.acquisition_function == "posterior_descendant":
+            children_samples = torch.stack(
+                [self.tree.nodes[child]["samples"] for child in children]
+            )
+            argmax_children_samples = torch.max(children_samples, dim=0)[1]
+            counts = torch.bincount(argmax_children_samples)
+            most_common_index = torch.argmax(counts)
+            best_child = children[most_common_index]
+            self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
+            self.tree.nodes[node]["best_child"] = best_child
+        else:
+            max_children_samples = torch.stack(
+                [self.tree.nodes[child]["max_samples"] for child in children]
+            )
+            max_samples = torch.max(max_children_samples, dim=0)[0]
+            self.tree.nodes[node]["max_samples"] = max_samples
+            argmax_children_samples = torch.argmax(max_children_samples, dim=0).tolist()
+            most_common_index_max = max(
+                set(max_children_samples), key=max_children_samples.count
+            )
+            best_max_child = children[most_common_index_max]
+            self.tree.nodes[node]["best_max_child"] = best_max_child
 
         if not node == "0":
             parent = next(self.tree.predecessors(node))
