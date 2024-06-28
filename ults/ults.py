@@ -264,8 +264,6 @@ class ULTS:
             else:
                 outputs = self.model(input_ids=tokens)
 
-            if not self.stop_at_eos:
-                outputs.logits[0, -1, self.eos_token] = - math.inf
 
             scores_processed = outputs.logits.clone()
 
