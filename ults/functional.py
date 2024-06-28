@@ -28,7 +28,7 @@ def generate(
     sample_size: int = 1000,
     output_full_sequence: bool = False,
     stop_at_eos: bool = True,
-    acquisition_function: str: "posterior",
+    acquisition_function: str= "posterior",
 ) -> ULTSOutput:
     """ULTS: Uncertainty-guided Likelihood-Tree Search.
 
