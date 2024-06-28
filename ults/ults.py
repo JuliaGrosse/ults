@@ -265,16 +265,17 @@ class ULTS:
                 outputs = self.model(input_ids=tokens)
 
 
-            scores_processed = outputs.logits.clone()
 
             # Also see:
             # https://github.com/huggingface/transformers/blob/c54a8ca48eb1b85785f7fdbefb5311f172d19726/src/transformers/generation/logits_process.py#L225-L231
             if not self.stop_at_eos:
+                scores_processed = outputs.logits.clone()
                 vocab_tensor = torch.arange(outputs.logits.shape[-1], device=outputs.logits.device)
                 eos_token_mask = torch.isin(vocab_tensor, self.eos_token)
                 scores_processed = torch.where(eos_token_mask, -math.inf, outputs.logits)
-
-            logprobs = torch.log_softmax(scores_processed, dim=-1)
+                logprobs = torch.log_softmax(scores_processed, dim=-1)
+            else:
+                logprobs = torch.log_softmax(outputs.logits, dim=-1)
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
