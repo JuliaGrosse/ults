@@ -28,13 +28,14 @@ def generate(
     sample_size: int = 1000,
     output_full_sequence: bool = False,
     stop_at_eos: bool = True,
-    acquisition_function: str= "posterior",
+    acquisition_function: str = "posterior",
 ) -> ULTSOutput:
     """ULTS: Uncertainty-guided Likelihood-Tree Search.
 
     Args:
         model: A Huggingface LLM model.
-        model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids".
+        model_inputs: The input of `model(...)` or `model.forward(...)`.
+            Must contain key "input_ids".
         max_tokens: Maximum number of tokens to generate.
         max_beam_size: Maximum number of nodes to expand per level.
         vocab_size: Vocabulary size. This should be `len(tokenizer)` in most cases.
@@ -47,8 +48,10 @@ def generate(
         output_full_sequence: Whether to output the full sequence (context + generated).
             The outputted loglik will reflect this.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
-        acquisition_function: "posterior" or "posterior_descendant". "posterior": pick child node based on posterior over v.
-        "posterior_descendant": pick child node based on posterior over v of best descendant.
+        acquisition_function: "posterior" or "posterior_descendant".
+            "posterior": pick child node based on posterior over max loglik.
+            "posterior_descendant": pick child node based on posterior over max loglik
+            of the best descendant.
 
     Returns:
         ults_output: A dataclass containing `sequence`, `loglik`, and `n_llm_calls`.

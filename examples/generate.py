@@ -70,13 +70,13 @@ output = ults.generate(
     model=model,
     model_inputs=model_inputs,
     max_tokens=40,
-    vocab_size=len(tokenizer),
     max_beam_size=5,
     epsilon=0.1,
     prior_kind="dirichlet",
     prior_dirichlet_alpha=0.0001,
     sample_size=1000,
     output_full_sequence=False,
+    acquisition_function="posterior",
 )
 
 # Print results

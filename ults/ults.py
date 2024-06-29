@@ -17,7 +17,8 @@ class ULTS:
 
     Args:
         model: A Huggingface LLM model.
-        model_inputs: The input of `model(...)` or `model.forward(...)`. Must contain key "input_ids". This is usually the output of `tokenizer(text)`.
+        model_inputs: The input of `model(...)` or `model.forward(...)`.
+            Must contain key "input_ids". This is usually the output of `tokenizer(text)`.
         max_tokens: Maximum number of tokens to generate.
         vocab_size: Vocabulary size. This should be `len(tokenizer)` in most cases.
             If `None`, then this will be inferred from `model.config.vocab_size`.
@@ -28,8 +29,10 @@ class ULTS:
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
-        acquisition_function: "posterior" or "posterior_descendant". "posterior": pick child node based on posterior over v.
-        "posterior_descendant": pick child node based on posterior over v of best descendant.
+        acquisition_function: "posterior" or "posterior_descendant".
+            "posterior": pick child node based on posterior over max loglik.
+            "posterior_descendant": pick child node based on posterior over mx loglik
+            of best descendant.
     """
 
     def __init__(
@@ -75,7 +78,6 @@ class ULTS:
         self.eos_token = self.model.config.eos_token_id
         self.acquisition_function = acquisition_function
 
-
         # For encoder-decoder/seq2seq models
         if self.is_encoder_decoder:
             tokens = torch.ones((1, 1), dtype=torch.long, device=self.device)
@@ -95,12 +97,11 @@ class ULTS:
             tokens=tokens,
             loglike=1,
             samples=np.ones(2),
-            max_samples = np.ones(2),
+            max_samples=np.ones(2),
             depth=0,
             active=True,
             best_child=None,
             explored=False,
-            max_samples=np.ones(2),
             best_max_child=None,
         )
         self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
@@ -294,15 +295,17 @@ class ULTS:
             else:
                 outputs = self.model(input_ids=tokens)
 
-
-
             # Also see:
             # https://github.com/huggingface/transformers/blob/c54a8ca48eb1b85785f7fdbefb5311f172d19726/src/transformers/generation/logits_process.py#L225-L231
             if not self.stop_at_eos:
                 scores_processed = outputs.logits.clone()
-                vocab_tensor = torch.arange(outputs.logits.shape[-1], device=outputs.logits.device)
+                vocab_tensor = torch.arange(
+                    outputs.logits.shape[-1], device=outputs.logits.device
+                )
                 eos_token_mask = torch.isin(vocab_tensor, self.eos_token)
-                scores_processed = torch.where(eos_token_mask, -math.inf, outputs.logits)
+                scores_processed = torch.where(
+                    eos_token_mask, -math.inf, outputs.logits
+                )
                 logprobs = torch.log_softmax(scores_processed, dim=-1)
             else:
                 logprobs = torch.log_softmax(outputs.logits, dim=-1)
@@ -415,7 +418,6 @@ class ULTS:
 
             # Update the estimate for the probability that we found the optimal path
             if self.acquisition_function == "posterior":
-
                 overall_max_samples = self.tree.nodes["0"]["max_samples"]
             else:
                 overall_max_samples = self.tree.nodes["0"]["samples"]
