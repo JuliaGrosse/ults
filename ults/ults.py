@@ -275,6 +275,7 @@ class ULTS:
         ]
         self.tree.add_edges_from(new_edges)
         self.tree.remove_nodes_from(list(n for n in pruned_level_nodes))
+        self.backup("0")
 
     def predict(self, tokens: torch.LongTensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Forward pass through the LLM. Returning the top-k best logprobs and indices.
