@@ -136,5 +136,5 @@ will be installed in an editable mode.
 
 1. Run `pytest` and make sure all tests pass.
 2. Run `make ruff` and ensure:
-   1. All code are formatted correctly.
+   1. All codes are formatted correctly.
    2. There is no linting issue.
