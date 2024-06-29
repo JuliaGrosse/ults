@@ -1,0 +1,40 @@
+[project]
+name = "ults"
+version = "0.1.0"
+description = "Uncertainty-Guided Likelihood-Tree Search"
+authors = [
+    { name = "Julia Grosse" },
+    { name = "Agustinus Kristiadi" },
+]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "datasets",
+    "networkx",
+    "tokenizers",
+    "torch >= 2.0",
+    "transformers",
+]
+license = { text = "MIT" }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=8.2.2",
+    "pytest-cov>=5.0.0",
+]
+lint = [
+    "ruff>=0.5.0",
+]

@@ -63,10 +63,15 @@ generated_text = tokenizer.decode(generated_sequence[0])
 
 On top of the default Dirichlet priors (agnostic to the LLM), ULTS can also leverage
 empirical priors, specific to the LLM at hand.
-Example precomputed empirical priors, compatible with [Llama-2-7b](https://huggingface.co/meta-llama/Llama-2-7b-hf), [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1), and [Gemma-7b](https://huggingface.co/google/gemma-7b), are available in `examples/ults_priors`.
+Example precomputed empirical priors, compatible with
+[Llama-2-7b](https://huggingface.co/meta-llama/Llama-2-7b-hf),
+[Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1),
+and [Gemma-7b](https://huggingface.co/google/gemma-7b), are available in
+`examples/ults_priors`.
 
-1. First, gather samples of the LLM's softmax outputs from different time steps. Here
-   we will use the greedy decoding. See `examples/sample_llm_outputs.py` for a complete example
+1. First, gather samples of the LLM's softmax outputs from different time steps.
+Here we will use the greedy decoding. See `examples/sample_llm_outputs.py` for
+a complete example
 
 ```python
 RESULT_DIR = f"./ults_priors/llm_output_samples/{DATASET_NAME}_{LLM_NAME}"
@@ -113,3 +118,23 @@ output = ults.generate(
 ## Caveats
 
 1. Currently doesn't support batch generation.
+
+## Development
+
+This repo uses [pdm](https://github.com/pdm-project/pdm) as the dependency manager and
+the build system.
+
+1. Install pdm, see: <https://pdm-project.org/en/latest/>
+2. Run `pdm install`
+
+All dependencies will then be installed by pdm. Moreover the current repo
+will be installed in an editable mode.
+
+> [!IMPORTANT]
+> Before pushing your code, ensure that **_all_** tests pass and **_all_** linting
+> and formatting issues are resolved.
+
+1. Run `pytest` and make sure all tests pass.
+2. Run `make ruff` and ensure:
+   1. All code are formatted correctly.
+   2. There is no linting issue.
