@@ -27,6 +27,7 @@ class ULTS:
         prior_kind: "dirichlet" or "empirical".
         prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
+        prior_dir: The location of the cached priors.
         sample_size: Number of posterior samples to use.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
         acquisition_function: "posterior" or "posterior_descendant".
@@ -46,6 +47,7 @@ class ULTS:
         prior_kind: str = "dirichlet",
         prior_dirichlet_alpha: float = 0.0001,
         prior_empirical_llm_samples: torch.Tensor | None = None,
+        prior_dir: str = "./ults_priors",
         sample_size: int = 1000,
         stop_at_eos: bool = True,
         acquisition_function: str = "posterior",
@@ -68,6 +70,7 @@ class ULTS:
         self.prior_kind = prior_kind
         self.prior_dirichlet_alpha = prior_dirichlet_alpha
         self.prior_empirical_llm_samples = prior_empirical_llm_samples
+        self.prior_dir = prior_dir
         self.sample_size = sample_size
         self.buffer_size = max_beam_size
         self.max_beam_size = max_beam_size
@@ -113,12 +116,12 @@ class ULTS:
             beta_params: Float ndarray of shape (depth, 4). Where each level contains
                 Beta's `(a, b, loc, scale)` parameters.
         """
-        DIRNAME = ".cache/priors"
-
         if self.prior_kind == "dirichlet":
-            FNAME = f"{DIRNAME}/prior_depth{self.depth}_width{self.width}_alpha{self.prior_dirichlet_alpha}.npy"
+            FNAME = f"{self.prior_dir}/prior_depth{self.depth}_width{self.width}_alpha{self.prior_dirichlet_alpha}.npy"
         else:
-            FNAME = f"{DIRNAME}/prior_depth{self.depth}_width{self.width}_emp.npy"
+            FNAME = (
+                f"{self.prior_dir}/prior_depth{self.depth}_width{self.width}_emp.npy"
+            )
 
         if os.path.isfile(FNAME):
             prior = np.load(FNAME)
@@ -165,8 +168,8 @@ class ULTS:
             beta_params[d, 2] = loc
             beta_params[d, 3] = scale
 
-        if not os.path.exists(DIRNAME):
-            os.makedirs(DIRNAME)
+        if not os.path.exists(self.prior_dir):
+            os.makedirs(self.prior_dir)
 
         np.save(FNAME, beta_params)
 

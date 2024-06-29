@@ -25,6 +25,7 @@ def generate(
     prior_kind: str = "dirichlet",
     prior_dirichlet_alpha: float = 0.0001,
     prior_empirical_llm_samples: torch.Tensor | None = None,
+    prior_dir: str = "./ults_priors",
     sample_size: int = 1000,
     output_full_sequence: bool = False,
     stop_at_eos: bool = True,
@@ -44,6 +45,7 @@ def generate(
         prior_kind: "dirichlet" or "empirical".
         prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
+        prior_dir: The location of the cached priors.
         sample_size: Number of posterior samples to use.
         output_full_sequence: Whether to output the full sequence (context + generated).
             The outputted loglik will reflect this.
@@ -66,6 +68,7 @@ def generate(
         prior_kind=prior_kind,
         prior_dirichlet_alpha=prior_dirichlet_alpha,
         prior_empirical_llm_samples=prior_empirical_llm_samples,
+        prior_dir=prior_dir,
         sample_size=sample_size,
         stop_at_eos=stop_at_eos,
         acquisition_function=acquisition_function,

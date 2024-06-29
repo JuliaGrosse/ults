@@ -60,7 +60,7 @@ else:
 
 dataset = dataset.shuffle(seed=42)
 
-RES_DIR = f".cache/llm_output_samples/{args.dataset}_{args.llm}"
+RES_DIR = f"./ults_priors/llm_output_samples/{args.dataset}_{args.llm}"
 if not os.path.exists(RES_DIR):
     os.makedirs(RES_DIR)
 

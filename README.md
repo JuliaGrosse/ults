@@ -25,7 +25,7 @@ See full example here: [examples/generate.py](https://github.com/JuliaGrosse/ult
 ### Quickstart with the Dirichlet prior
 
 > [!IMPORTANT]
-> ULTS will first check `.cache/priors` for a precomputed prior with your choices of
+> ULTS will first check `prior_dir` directory (default `./ults_priors`) for a precomputed prior with your choices of
 > width (vocab size), depth (max tokens to generate), and $\alpha$ (concentration strength).
 > If not exists, then it will compute and cache the prior --- this might take a while!
 > However, this only needs to be done _once_ for each each of the choices above.
@@ -63,13 +63,13 @@ generated_text = tokenizer.decode(generated_sequence[0])
 
 On top of the default Dirichlet priors (agnostic to the LLM), ULTS can also leverage
 empirical priors, specific to the LLM at hand.
-Example precomputed empirical priors, compatible with [Llama-2-7b](https://huggingface.co/meta-llama/Llama-2-7b-hf), [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1), and [Gemma-7b](https://huggingface.co/google/gemma-7b), are available in `examples/.cache/priors`.
+Example precomputed empirical priors, compatible with [Llama-2-7b](https://huggingface.co/meta-llama/Llama-2-7b-hf), [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1), and [Gemma-7b](https://huggingface.co/google/gemma-7b), are available in `examples/ults_priors`.
 
 1. First, gather samples of the LLM's softmax outputs from different time steps. Here
    we will use the greedy decoding. See `examples/sample_llm_outputs.py` for a complete example
 
 ```python
-RESULT_DIR = f".cache/llm_output_samples/{DATASET_NAME}_{LLM_NAME}"
+RESULT_DIR = f"./ults_priors/llm_output_samples/{DATASET_NAME}_{LLM_NAME}"
 
 # Samples of contexts from your dataset
 contexts: List[str]
