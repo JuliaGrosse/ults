@@ -74,6 +74,7 @@ output = ults.generate(
     epsilon=0.1,
     prior_kind="dirichlet",
     prior_dirichlet_alpha=0.0001,
+    prior_dir="./ults_priors",
     sample_size=1000,
     output_full_sequence=False,
     acquisition_function="posterior",
