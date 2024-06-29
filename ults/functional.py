@@ -27,7 +27,6 @@ def generate(
     prior_empirical_llm_samples: torch.Tensor | None = None,
     sample_size: int = 1000,
     output_full_sequence: bool = False,
-    stopping_criterion: str = "next",
     stop_at_eos: bool = True,
     acquisition_function: str= "posterior",
 ) -> ULTSOutput:
@@ -47,9 +46,6 @@ def generate(
         sample_size: Number of posterior samples to use.
         output_full_sequence: Whether to output the full sequence (context + generated).
             The outputted loglik will reflect this.
-        stopping_criterion: "next" or "max". "next": terminate as soon as the next observation doesn't
-            improve the result anymore (with probability 1-epsilon). "max": terminate as soon as
-            the maximum is found with probability 1-epsilon.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
         acquisition_function: "posterior" or "posterior_descendant". "posterior": pick child node based on posterior over v.
         "posterior_descendant": pick child node based on posterior over v of best descendant.
@@ -68,7 +64,6 @@ def generate(
         prior_dirichlet_alpha=prior_dirichlet_alpha,
         prior_empirical_llm_samples=prior_empirical_llm_samples,
         sample_size=sample_size,
-        stopping_criterion = stopping_criterion,
         stop_at_eos=stop_at_eos,
         acquisition_function=acquisition_function,
     )
