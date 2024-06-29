@@ -418,8 +418,8 @@ class ULTS:
                             best_path = children_tokens[i][None, :]
                             best_observed_value = child_obs.item()
 
-            # Update optimal value distribution of parents
-            self.backup(new_node_name)
+                # Update optimal value distribution of parents
+                self.backup(new_node_name)
 
             # Update the estimate for the probability that we found the optimal path
             if self.acquisition_function == "posterior":
