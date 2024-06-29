@@ -24,6 +24,7 @@ def generate(
     epsilon: float = 0.1,
     prior_kind: str = "dirichlet",
     prior_dirichlet_alpha: float = 0.0001,
+    prior_empirical_dataset_name: str | None = None,
     prior_empirical_llm_samples: torch.Tensor | None = None,
     prior_dir: str = "./ults_priors",
     sample_size: int = 1000,
@@ -43,9 +44,11 @@ def generate(
             If `None`, then this will be inferred from `model.config.vocab_size`.
         epsilon: Confidence level for termination.
         prior_kind: "dirichlet" or "empirical".
-        prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
-        prior_empirical_llm_samples: LLM output samples for the empirical prior.
         prior_dir: The location of the cached priors.
+        prior_dirichlet_alpha: Concentration parameter of the Dirichlet prior.
+        prior_empirical_dataset_name: Dataset name where `prior_empirical_llm_samples`
+            are obtained from.
+        prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
         output_full_sequence: Whether to output the full sequence (context + generated).
             The outputted loglik will reflect this.
@@ -66,9 +69,10 @@ def generate(
         vocab_size=vocab_size,
         epsilon=epsilon,
         prior_kind=prior_kind,
-        prior_dirichlet_alpha=prior_dirichlet_alpha,
-        prior_empirical_llm_samples=prior_empirical_llm_samples,
         prior_dir=prior_dir,
+        prior_dirichlet_alpha=prior_dirichlet_alpha,
+        prior_empirical_dataset_name=prior_empirical_dataset_name,
+        prior_empirical_llm_samples=prior_empirical_llm_samples,
         sample_size=sample_size,
         stop_at_eos=stop_at_eos,
         acquisition_function=acquisition_function,
