@@ -225,8 +225,9 @@ class ULTS:
                 [self.tree.nodes[child]["samples"] for child in children]
             )
             winner_index, _ = self.winner_index(children_samples)
+            best_child = children[winner_index]
             self.tree.nodes[node]["samples"] = self.tree.nodes[best_child]["samples"]
-            self.tree.nodes[node]["best_child"] = children[winner_index]
+            self.tree.nodes[node]["best_child"] = best_child
         else:
             max_children_samples = torch.stack(
                 [self.tree.nodes[child]["max_samples"] for child in children]
