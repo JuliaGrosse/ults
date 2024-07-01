@@ -118,6 +118,7 @@ output = ults.generate(
 ## Caveats
 
 1. Currently doesn't support batch generation.
+2. [Huggingface optimizes the average log-likelihood](https://github.com/huggingface/transformers/blob/6c1d0b069de22d7ed8aa83f733c25045eea0585d/src/transformers/generation/beam_search.py#L964-L965). It is effectively penalizes shorter sequences. Meanwhile, ULTS optimizes the _total_ log-likelihood, so the behavior differs from Huggingface's. There is a plan to support this in ULTS, see [#36](https://github.com/JuliaGrosse/ults/issues/36).
 
 ## Development
 
