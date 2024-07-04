@@ -1,5 +1,9 @@
 # ULTS: Uncertainty-guided Likelihood Tree Search
 
+![pytest](https://github.com/juliagrosse/ults/actions/workflows/pytest.yml/badge.svg)
+![lint](https://github.com/juliagrosse/ults/actions/workflows/lint-ruff.yml/badge.svg)
+![format](https://github.com/juliagrosse/ults/actions/workflows/format-ruff.yml/badge.svg)
+
 Accompanying implementation of the following paper [[ArXiv]](TODO!):
 
 ```bib
