@@ -4,13 +4,13 @@
 ![lint](https://github.com/juliagrosse/ults/actions/workflows/lint-ruff.yml/badge.svg)
 ![format](https://github.com/juliagrosse/ults/actions/workflows/format-ruff.yml/badge.svg)
 
-Accompanying implementation of the following paper [[ArXiv]](TODO!):
+Accompanying implementation of the following paper [[ArXiv]](https://arxiv.org/abs/2407.03951):
 
 ```bib
-@article{grosse2024ults,
+@inproceedings{grosse2024ults,
   title={Uncertainty-Guided Optimization On Large Language Model Search Trees},
   author={Grosse, Julia and Wu, Ruotian and Rashid, Ahmad and Hennig, Philipp and Poupart, Pascal and Kristiadi, Agustinus},
-  journal={arXiv preprint arXiv:TODO!},
+  booktitle={Sixth Symposium on Advances in Approximate Bayesian Inference --- Non Archival Track},
   year={2024}
 }
 ```
