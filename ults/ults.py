@@ -36,6 +36,9 @@ class ULTS:
             "posterior": pick child node based on posterior over max loglik.
             "posterior_descendant": pick child node based on posterior over mx loglik
             of best descendant.
+        ngram_penalty: penalty parameter for punishing repetitive sequences
+        ngram_order: highest order of the n-grams that should be taken into account for punishing
+            repetitive sequences, n>1
     """
 
     def __init__(
@@ -54,6 +57,8 @@ class ULTS:
         sample_size: int = 1000,
         stop_at_eos: bool = True,
         acquisition_function: str = "posterior",
+        ngram_penalty: float = 0.0,
+        ngram_order: int = 4,
     ):
         if prior_kind == "empirical" and prior_empirical_dataset_name is None:
             raise ValueError(
@@ -64,6 +69,9 @@ class ULTS:
             raise ValueError(
                 "`acquisition_function` can only be `posterior` or `posterior_descendant`."
             )
+
+        if ngram_order < 2:
+            raise ValueError("ngram_order can only be > 1.")
 
         self.model = model
         self.is_encoder_decoder = model.config.is_encoder_decoder
@@ -97,6 +105,9 @@ class ULTS:
             tokens = model_inputs["input_ids"].to(self.device)
             self.encoder_inputs = None
             self.encoder_outputs = None
+
+        self.ngram_penalty = ngram_penalty * (self.depth + tokens.size(-1))
+        self.ngram_order = ngram_order
 
         self.tree = nx.DiGraph()
         self.tree.add_node(
@@ -255,6 +266,22 @@ class ULTS:
         """
         return self.max_beam_size >= self.used_max_beam_size[-1]
 
+    def n_grams(self, tokens, n) -> int:
+        """n_grams in the token sequence."""
+        return [tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)]
+
+    def rep_n(self, tokens, n) -> float:
+        """portion of duplicate n-grams. (Also see: https://arxiv.org/pdf/2202.06417)"""
+        total_ngrams = self.n_grams(tokens, n)
+        unique_ngrams = set(total_ngrams)
+        return 100 * (1 - len(unique_ngrams) / len(total_ngrams))
+
+    def diversity(self, tokens) -> float:
+        """Diversity measure of a token sequence (Also see: https://arxiv.org/pdf/2202.06417)"""
+        return np.prod(
+            [1 - self.rep_n(tokens, n) / 100 for n in range(2, self.ngram_order + 1)]
+        )
+
     def set_nodes_to_inactive(self) -> None:
         """Check the number of expanded nodes per level of the tree. If this number
         exceeds the constraint on the maximal number, set all nodes on this level and
@@ -388,13 +415,17 @@ class ULTS:
                     child_obs = children_observations[i]
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
+                    penalty = np.log(self.diversity(child_tokens[0].tolist()))
 
                     if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
-                        child_samples = children_observations[i].repeat(
-                            self.sample_size
+                        child_samples = (
+                            children_observations[i].repeat(self.sample_size)
+                            + self.ngram_penalty * penalty
                         )
                     else:
-                        child_samples = children_samples[i]
+                        child_samples = (
+                            children_samples[i] + self.ngram_penalty * penalty
+                        )
 
                     self.tree.add_node(
                         child_name,
@@ -415,9 +446,15 @@ class ULTS:
                     if child_depth == self.depth or (
                         self.stop_at_eos and child_tokens[0, -1] == self.eos_token
                     ):
-                        if child_obs > best_observed_value:
+                        if (
+                            child_obs + self.ngram_penalty * penalty
+                            > best_observed_value
+                        ):
                             best_path = children_tokens[i][None, :]
-                            best_observed_value = child_obs.item()
+                            best_observed_value = (
+                                child_obs.item() + self.ngram_penalty * penalty
+                            )
+                            best_observed_loglike = child_obs.item()
 
                 # Update optimal value distribution of parents
                 self.backup(new_node_name)
@@ -431,4 +468,4 @@ class ULTS:
                 torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
             )
 
-        return best_path, best_observed_value, n_llm_calls
+        return best_path, best_observed_loglike, n_llm_calls

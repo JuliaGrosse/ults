@@ -31,6 +31,8 @@ def generate(
     output_full_sequence: bool = False,
     stop_at_eos: bool = True,
     acquisition_function: str = "posterior",
+    ngram_penalty: float = 0.0,
+    ngram_order: int = 4,
 ) -> ULTSOutput:
     """ULTS: Uncertainty-guided Likelihood-Tree Search.
 
@@ -57,6 +59,9 @@ def generate(
             "posterior": pick child node based on posterior over max loglik.
             "posterior_descendant": pick child node based on posterior over max loglik
             of the best descendant.
+        ngram_penalty: penalty parameter for punishing repetitive sequences
+        ngram_order: highest order of the n-grams that should be taken into account for punishing
+            repetitive sequences, n>1.
 
     Returns:
         ults_output: A dataclass containing `sequence`, `loglik`, and `n_llm_calls`.
@@ -76,6 +81,8 @@ def generate(
         sample_size=sample_size,
         stop_at_eos=stop_at_eos,
         acquisition_function=acquisition_function,
+        ngram_penalty=ngram_penalty,
+        ngram_order=ngram_order,
     )
 
     # Generation results --- full sequence and total_loglik include context
