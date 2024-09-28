@@ -102,7 +102,6 @@ class ULTS:
 
         self.total_tree_depth = self.depth + tokens.size(-1)
 
-
         self.tree = nx.DiGraph()
         self.tree.add_node(
             "0",
@@ -328,8 +327,9 @@ class ULTS:
 
         return new_logprobs[top_indices], top_indices
 
-
-    def contrastive_predict(self, tokens: torch.LongTensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def contrastive_predict(
+        self, tokens: torch.LongTensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Forward pass through the LLM. Returning the top-k best logprobs, indices and penalty terms.
         Here, `k` equals `max_beam_size`.
 
@@ -353,8 +353,10 @@ class ULTS:
                     output_hidden_states=True,
                 )
             else:
-                outputs = self.model(input_ids=tokens,
-                output_hidden_states=True,)
+                outputs = self.model(
+                    input_ids=tokens,
+                    output_hidden_states=True,
+                )
 
             # Also see:
             # https://github.com/huggingface/transformers/blob/c54a8ca48eb1b85785f7fdbefb5311f172d19726/src/transformers/generation/logits_process.py#L225-L231
@@ -364,9 +366,7 @@ class ULTS:
                     outputs.logits.shape[-1], device=outputs.logits.device
                 )
                 eos_token_mask = torch.isin(vocab_tensor, self.eos_token)
-                logits = torch.where(
-                    eos_token_mask, -math.inf, outputs.logits
-                )
+                logits = torch.where(eos_token_mask, -math.inf, outputs.logits)
                 logprobs = torch.log_softmax(scores_processed, dim=-1)
             else:
                 logits = outputs.logits
@@ -381,16 +381,16 @@ class ULTS:
             _, seqlen, embed_dim = prev_hidden_states.size()
             _, _, vocab_size = logits.size()
 
-            logit_for_next_step = logits[:,-1,:]
-            next_probs = torch.softmax(logit_for_next_step, dim = -1)
-            _, top_k_ids = torch.topk(logit_for_next_step, dim = -1, k = self.max_beam_size)
-            top_k_probs = torch.gather(next_probs, dim = 1, index=top_k_ids)
+            logit_for_next_step = logits[:, -1, :]
+            next_probs = torch.softmax(logit_for_next_step, dim=-1)
+            _, top_k_ids = torch.topk(logit_for_next_step, dim=-1, k=self.max_beam_size)
+            top_k_probs = torch.gather(next_probs, dim=1, index=top_k_ids)
 
             # compute new hidden
             expanded_context = [tokens for _ in range(self.max_beam_size)]
-            expanded_context = torch.cat(expanded_context, dim = 0)
+            expanded_context = torch.cat(expanded_context, dim=0)
             top_k_ids = top_k_ids.view(self.max_beam_size, 1)
-            next_input_ids = torch.cat([expanded_context, top_k_ids], dim = -1)
+            next_input_ids = torch.cat([expanded_context, top_k_ids], dim=-1)
 
             if self.is_encoder_decoder:
                 new_outputs = self.model(
@@ -399,23 +399,26 @@ class ULTS:
                     encoder_outputs=self.encoder_outputs,
                     output_hidden_states=True,
                 )
-                next_hidden = new_outputs.decoder_hidden_states[0][:,-1,:]
+                next_hidden = new_outputs.decoder_hidden_states[0][:, -1, :]
                 next_hidden = torch.unsqueeze(next_hidden, 1)
-                context_hidden = new_outputs.decoder_hidden_states[0][:,:-1,:]
+                context_hidden = new_outputs.decoder_hidden_states[0][:, :-1, :]
             else:
-                new_outputs = self.model(input_ids=next_input_ids,output_hidden_states=True,)
-                next_hidden = new_outputs.hidden_states[0][:,-1,:]
+                new_outputs = self.model(
+                    input_ids=next_input_ids,
+                    output_hidden_states=True,
+                )
+                next_hidden = new_outputs.hidden_states[0][:, -1, :]
                 next_hidden = torch.unsqueeze(next_hidden, 1)
-                context_hidden = new_outputs.hidden_states[0][:,:-1,:]
+                context_hidden = new_outputs.hidden_states[0][:, :-1, :]
 
-            degeneration_pen = self.degeneration_penalty(context_hidden, next_hidden, top_k_probs)
-
+            degeneration_pen = self.degeneration_penalty(
+                context_hidden, next_hidden, top_k_probs
+            )
 
         nb_tokens = tokens.size(-1)
         old_logprobs = torch.sum(logprobs[0, range(nb_tokens - 1), tokens[0, 1:]])
         new_logprobs = old_logprobs + logprobs[0, -1, :]
         top_indices = torch.topk(new_logprobs, self.buffer_size).indices
-
 
         return new_logprobs[top_indices], top_indices, degeneration_pen
 
@@ -432,8 +435,10 @@ class ULTS:
         beam_width, context_len, embed_dim = context_hidden.size()
         norm_context_hidden = context_hidden / context_hidden.norm(dim=2, keepdim=True)
         norm_next_hidden = next_hidden / next_hidden.norm(dim=2, keepdim=True)
-        cosine_matrix = torch.matmul(norm_context_hidden, norm_next_hidden.transpose(1,2)).squeeze(-1)
-        degeneration_pen, _ = torch.max(cosine_matrix, dim = -1)
+        cosine_matrix = torch.matmul(
+            norm_context_hidden, norm_next_hidden.transpose(1, 2)
+        ).squeeze(-1)
+        degeneration_pen, _ = torch.max(cosine_matrix, dim=-1)
         return degeneration_pen
 
     def search(self) -> tuple[torch.Tensor, float, int]:
@@ -473,12 +478,14 @@ class ULTS:
                 n_llm_calls += 1
                 child_depth = depth + 1
 
-                if  self.contrastive_alpha == 0:
+                if self.contrastive_alpha == 0:
                     # basic (i.e. non-contrastive search)
                     children_observations, top_indices = self.predict(new_node_tokens)
                 else:
                     # contrastive search
-                    children_observations, top_indices, degeneration_pen = self.contrastive_predict(new_node_tokens)
+                    children_observations, top_indices, degeneration_pen = (
+                        self.contrastive_predict(new_node_tokens)
+                    )
 
                 # generate samples from the prior for the optimal value of the remaining
                 # token sequence for all children (that fit in the buffer)
@@ -519,7 +526,11 @@ class ULTS:
                     if self.contrastive_alpha != 0:
                         dp = degeneration_pen[i].float().numpy()
                         # TODO: think about how to do the weighting between likelihood and penalty term. Currently, it doesn't seem optimal.
-                        child_samples = (1.0 - self.contrastive_alpha) * child_samples - self.contrastive_alpha * np.log(dp**self.total_tree_depth)
+                        child_samples = (
+                            1.0 - self.contrastive_alpha
+                        ) * child_samples - self.contrastive_alpha * np.log(
+                            dp**self.total_tree_depth
+                        )
 
                     self.tree.add_node(
                         child_name,
