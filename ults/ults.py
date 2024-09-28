@@ -10,6 +10,7 @@ import math
 from scipy import stats
 from torch.distributions.beta import Beta
 from transformers import BatchEncoding
+from ults import utils
 
 
 class ULTS:
@@ -266,20 +267,10 @@ class ULTS:
         """
         return self.max_beam_size >= self.used_max_beam_size[-1]
 
-    def n_grams(self, tokens, n) -> int:
-        """n_grams in the token sequence."""
-        return [tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)]
-
-    def rep_n(self, tokens, n) -> float:
-        """portion of duplicate n-grams. (Also see: https://arxiv.org/pdf/2202.06417)"""
-        total_ngrams = self.n_grams(tokens, n)
-        unique_ngrams = set(total_ngrams)
-        return 100 * (1 - len(unique_ngrams) / len(total_ngrams))
-
-    def diversity(self, tokens) -> float:
+    def log_diversity(self, tokens) -> float:
         """Diversity measure of a token sequence (Also see: https://arxiv.org/pdf/2202.06417)"""
-        return np.prod(
-            [1 - self.rep_n(tokens, n) / 100 for n in range(2, self.ngram_order + 1)]
+        return np.sum(
+            [np.log(1 - utils.rep_n(tokens, n) / 100) for n in range(2, self.ngram_order + 1)]
         )
 
     def set_nodes_to_inactive(self) -> None:
@@ -415,7 +406,7 @@ class ULTS:
                     child_obs = children_observations[i]
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
-                    penalty = np.log(self.diversity(child_tokens[0].tolist()))
+                    penalty = self.log_diversity(child_tokens[0].tolist())
 
                     if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
                         child_samples = (
