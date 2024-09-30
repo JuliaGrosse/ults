@@ -270,7 +270,10 @@ class ULTS:
     def log_diversity(self, tokens) -> float:
         """Diversity measure of a token sequence (Also see: https://arxiv.org/pdf/2202.06417)"""
         return np.sum(
-            [np.log(1 - utils.rep_n(tokens, n) / 100) for n in range(2, self.ngram_order + 1)]
+            [
+                np.log(1 - utils.rep_n(tokens, n) / 100)
+                for n in range(2, self.ngram_order + 1)
+            ]
         )
 
     def set_nodes_to_inactive(self) -> None:
@@ -406,7 +409,11 @@ class ULTS:
                     child_obs = children_observations[i]
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
-                    penalty = self.log_diversity(child_tokens[0].tolist())
+                    penalty = (
+                        0
+                        if self.ngram_penalty == 0
+                        else self.log_diversity(child_tokens[0].tolist())
+                    )
 
                     if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
                         child_samples = (
