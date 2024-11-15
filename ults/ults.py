@@ -272,7 +272,7 @@ class ULTS:
         """
         return (
             self.max_beam_size >= self.used_max_beam_size[-1]
-            and self._leaves_found < self.buffer_size
+            and self._leaves_found < self.max_beam_size
         )
 
     def log_diversity(self, tokens) -> float:
@@ -461,12 +461,11 @@ class ULTS:
                     if child_depth == self.depth or (
                         self.stop_at_eos and child_tokens[0, -1] == self.eos_token
                     ):
-                        if self.use_full_budget:
-                            # we want to compare by average log likelihood
-                            observed_value = (
-                                child_obs / child_tokens.size(-1)
-                                + self.ngram_penalty * penalty
-                            )
+                        # we want to compare by average log likelihood
+                        observed_value = (
+                            child_obs / child_tokens.size(-1)
+                            + self.ngram_penalty * penalty
+                        )
 
                         if observed_value > best_observed_value:
                             best_path = children_tokens[i][None, :]
