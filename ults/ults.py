@@ -389,6 +389,7 @@ class ULTS:
                 # Add the children to the tree
                 for i in range(self.buffer_size):
                     child_obs = children_observations[i]
+                    print(child_obs)
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
 
@@ -399,7 +400,7 @@ class ULTS:
                         if self.use_full_budget:
                             # make sure we don't select the eos node again in the next iteration
                             # by setting it to -inf.
-                            child_samples = np.ones(self.sample_size) * (-np.inf)
+                            child_samples = torch.full(self.sample_size, float('-inf'))
                     else:
                         child_samples = children_samples[i]
 
@@ -426,7 +427,7 @@ class ULTS:
 
                         if self.use_full_budget:
                             # we want to compare by average log likelihood
-                            child_obs = child_obs / child_tokens.shape(-1)
+                            child_obs = child_obs / child_tokens.size(-1)
                         if child_obs > best_observed_value:
                             best_path = children_tokens[i][None, :]
                             best_observed_value = child_obs.item()
@@ -445,7 +446,7 @@ class ULTS:
 
         # translate to total log-likelihood again
         if self.use_full_budget:
-            best_observed_value = best_observed_value * best_path.shape(-1)
+            best_observed_value = best_observed_value * best_path.size(-1)
 
 
         return best_path, best_observed_value, n_llm_calls
