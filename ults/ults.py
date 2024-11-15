@@ -10,6 +10,7 @@ import math
 from scipy import stats
 from torch.distributions.beta import Beta
 from transformers import BatchEncoding
+from ults import utils
 
 
 class ULTS:
@@ -37,6 +38,9 @@ class ULTS:
             "posterior": pick child node based on posterior over max loglik.
             "posterior_descendant": pick child node based on posterior over mx loglik
             of best descendant.
+        ngram_penalty: penalty parameter for punishing repetitive sequences
+        ngram_order: highest order of the n-grams that should be taken into account for punishing
+            repetitive sequences, n>1
     """
 
     def __init__(
@@ -56,6 +60,8 @@ class ULTS:
         stop_at_eos: bool = True,
         use_full_budget: bool = False,
         acquisition_function: str = "posterior",
+        ngram_penalty: float = 0.0,
+        ngram_order: int = 4,
     ):
         if prior_kind == "empirical" and prior_empirical_dataset_name is None:
             raise ValueError(
@@ -66,6 +72,9 @@ class ULTS:
             raise ValueError(
                 "`acquisition_function` can only be `posterior` or `posterior_descendant`."
             )
+
+        if ngram_order < 2:
+            raise ValueError("ngram_order can only be > 1.")
 
         self.model = model
         self.is_encoder_decoder = model.config.is_encoder_decoder
@@ -100,6 +109,9 @@ class ULTS:
             tokens = model_inputs["input_ids"].to(self.device)
             self.encoder_inputs = None
             self.encoder_outputs = None
+
+        self.ngram_penalty = ngram_penalty * (self.depth + tokens.size(-1))
+        self.ngram_order = ngram_order
 
         self.tree = nx.DiGraph()
         self.tree.add_node(
@@ -258,6 +270,15 @@ class ULTS:
         """
         return self.max_beam_size >= self.used_max_beam_size[-1]
 
+    def log_diversity(self, tokens) -> float:
+        """Diversity measure of a token sequence (Also see: https://arxiv.org/pdf/2202.06417)"""
+        return np.sum(
+            [
+                np.log(1 - utils.rep_n(tokens, n) / 100)
+                for n in range(2, self.ngram_order + 1)
+            ]
+        )
+
     def set_nodes_to_inactive(self) -> None:
         """Check the number of expanded nodes per level of the tree. If this number
         exceeds the constraint on the maximal number, set all nodes on this level and
@@ -392,17 +413,25 @@ class ULTS:
                     print(child_obs)
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
+                    penalty = (
+                        0
+                        if self.ngram_penalty == 0
+                        else self.log_diversity(child_tokens[0].tolist())
+                    )
 
                     if self.stop_at_eos and child_tokens[0, -1] == self.eos_token:
-                        child_samples = children_observations[i].repeat(
-                            self.sample_size
+                        child_samples = (
+                            children_observations[i].repeat(self.sample_size)
+                            + self.ngram_penalty * penalty
                         )
                         if self.use_full_budget:
                             # make sure we don't select the eos node again in the next iteration
                             # by setting it to -inf.
                             child_samples = torch.full(self.sample_size, float('-inf'))
                     else:
-                        child_samples = children_samples[i]
+                        child_samples = (
+                            children_samples[i] + self.ngram_penalty * penalty
+                        )
 
                     self.tree.add_node(
                         child_name,
@@ -425,12 +454,19 @@ class ULTS:
                     ):
 
 
+
                         if self.use_full_budget:
                             # we want to compare by average log likelihood
                             child_obs = child_obs / child_tokens.size(-1)
-                        if child_obs > best_observed_value:
+                        if (
+                            child_obs + self.ngram_penalty * penalty
+                            > best_observed_value
+                        ):
                             best_path = children_tokens[i][None, :]
-                            best_observed_value = child_obs.item()
+                            best_observed_value = (
+                                child_obs.item() + self.ngram_penalty * penalty
+                            )
+                            best_observed_loglike = child_obs.item()
 
                 # Update optimal value distribution of parents
                 self.backup(new_node_name)
@@ -443,6 +479,9 @@ class ULTS:
             prob_result_nodes = (
                 torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
             )
+
+        if self.ngram_penalty > 0:
+            best_observed_value = best_observed_loglike
 
         # translate to total log-likelihood again
         if self.use_full_budget:
