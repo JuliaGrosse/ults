@@ -128,6 +128,8 @@ class ULTS:
         )
         self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
 
+        self._leaves_found = 0
+
     def init_prior(self) -> np.ndarray:
         """Build the approximate prior over Delta or load if already exists.
 
@@ -268,7 +270,10 @@ class ULTS:
         Returns:
             is_budge_left: `True` if there is budget left, otherwise `False`.
         """
-        return self.max_beam_size >= self.used_max_beam_size[-1]
+        return (
+            self.max_beam_size >= self.used_max_beam_size[-1]
+            and self._leaves_found < self.max_beam_size
+        )
 
     def log_diversity(self, tokens) -> float:
         """Diversity measure of a token sequence (Also see: https://arxiv.org/pdf/2202.06417)"""
@@ -355,7 +360,7 @@ class ULTS:
             best_observed_value: Total logprob of the best path.
             n_llm_calls: Number of LLM forward passes done during the search.
         """
-        best_path: torch.Tensor = torch.tensor(0).long()
+        best_path: torch.Tensor = torch.tensor([[0]]).long()
         best_observed_value: float = -np.inf
         n_llm_calls: int = 0
         prob_result_nodes: float = 0
@@ -456,12 +461,11 @@ class ULTS:
                     if child_depth == self.depth or (
                         self.stop_at_eos and child_tokens[0, -1] == self.eos_token
                     ):
-                        if self.use_full_budget:
-                            # we want to compare by average log likelihood
-                            observed_value = (
-                                child_obs / child_tokens.size(-1)
-                                + self.ngram_penalty * penalty
-                            )
+                        # we want to compare by average log likelihood
+                        observed_value = (
+                            child_obs / child_tokens.size(-1)
+                            + self.ngram_penalty * penalty
+                        )
 
                         if observed_value > best_observed_value:
                             best_path = children_tokens[i][None, :]
@@ -470,6 +474,8 @@ class ULTS:
 
                             if self.use_full_budget:
                                 best_observed_loglike /= child_tokens.size(-1)
+
+                        self._leaves_found += 1
 
                 # Update optimal value distribution of parents
                 self.backup(new_node_name)
@@ -480,9 +486,15 @@ class ULTS:
             else:
                 overall_max_samples = self.tree.nodes["0"]["samples"]
 
-            prob_result_nodes = (
-                torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
-            )
+            if self.use_full_budget:
+                # If use full budget, then set to 0 so that it always be < 1-epsilon
+                # i.e., we ignore this termination criterion.
+                prob_result_nodes = 0
+            else:
+                prob_result_nodes = (
+                    torch.sum(best_observed_value >= overall_max_samples)
+                    / self.sample_size
+                )
 
         if self.ngram_penalty > 0:
             best_observed_value = best_observed_loglike
