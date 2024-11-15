@@ -128,6 +128,8 @@ class ULTS:
         )
         self.betaparameters = torch.from_numpy(self.init_prior()).to(self.device)
 
+        self._leaves_found = 0
+
     def init_prior(self) -> np.ndarray:
         """Build the approximate prior over Delta or load if already exists.
 
@@ -268,7 +270,10 @@ class ULTS:
         Returns:
             is_budge_left: `True` if there is budget left, otherwise `False`.
         """
-        return self.max_beam_size >= self.used_max_beam_size[-1]
+        return (
+            self.max_beam_size >= self.used_max_beam_size[-1]
+            and self._leaves_found < self.buffer_size
+        )
 
     def log_diversity(self, tokens) -> float:
         """Diversity measure of a token sequence (Also see: https://arxiv.org/pdf/2202.06417)"""
@@ -470,6 +475,8 @@ class ULTS:
 
                             if self.use_full_budget:
                                 best_observed_loglike /= child_tokens.size(-1)
+
+                        self._leaves_found += 1
 
                 # Update optimal value distribution of parents
                 self.backup(new_node_name)
