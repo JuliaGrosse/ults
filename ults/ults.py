@@ -360,7 +360,7 @@ class ULTS:
             best_observed_value: Total logprob of the best path.
             n_llm_calls: Number of LLM forward passes done during the search.
         """
-        best_path: torch.Tensor = torch.tensor(0).long()
+        best_path: torch.Tensor = torch.tensor([[0]]).long()
         best_observed_value: float = -np.inf
         n_llm_calls: int = 0
         prob_result_nodes: float = 0
@@ -487,9 +487,15 @@ class ULTS:
             else:
                 overall_max_samples = self.tree.nodes["0"]["samples"]
 
-            prob_result_nodes = (
-                torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
-            )
+            if self.use_full_budget:
+                # If use full budget, then set to 0 so that it always be < 1-epsilon
+                # i.e., we ignore this termination criterion.
+                prob_result_nodes = 0
+            else:
+                prob_result_nodes = (
+                    torch.sum(best_observed_value >= overall_max_samples)
+                    / self.sample_size
+                )
 
         if self.ngram_penalty > 0:
             best_observed_value = best_observed_loglike
