@@ -423,10 +423,15 @@ class ULTS:
                             children_observations[i].repeat(self.sample_size)
                             + self.ngram_penalty * penalty
                         )
+
                         if self.use_full_budget:
                             # make sure we don't select the eos node again in the next iteration
                             # by setting it to -inf.
-                            child_samples = torch.full(self.sample_size, float('-inf'))
+                            child_samples = torch.full(
+                                (self.sample_size,),
+                                float("-inf"),
+                                device=self.device,
+                            )
                     else:
                         child_samples = (
                             children_samples[i] + self.ngram_penalty * penalty
@@ -451,9 +456,6 @@ class ULTS:
                     if child_depth == self.depth or (
                         self.stop_at_eos and child_tokens[0, -1] == self.eos_token
                     ):
-
-
-
                         if self.use_full_budget:
                             # we want to compare by average log likelihood
                             child_obs = child_obs / child_tokens.size(-1)
@@ -485,6 +487,5 @@ class ULTS:
         # translate to total log-likelihood again
         if self.use_full_budget:
             best_observed_value = best_observed_value * best_path.size(-1)
-
 
         return best_path, best_observed_value, n_llm_calls
