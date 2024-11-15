@@ -410,7 +410,6 @@ class ULTS:
                 # Add the children to the tree
                 for i in range(self.buffer_size):
                     child_obs = children_observations[i]
-                    print(child_obs)
                     child_name = new_node_name + "*" + str(i)
                     child_tokens = children_tokens[i][None, :]
                     penalty = (
