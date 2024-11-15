@@ -32,6 +32,7 @@ class ULTS:
         prior_empirical_llm_samples: LLM output samples for the empirical prior.
         sample_size: Number of posterior samples to use.
         stop_at_eos: Consider sequences that end with <EOS> as leaf nodes.
+        use_full_budget: Keep searching after <eos> token was selected even if stop_at_eos is True.
         acquisition_function: "posterior" or "posterior_descendant".
             "posterior": pick child node based on posterior over max loglik.
             "posterior_descendant": pick child node based on posterior over mx loglik
@@ -53,6 +54,7 @@ class ULTS:
         prior_empirical_llm_samples: torch.Tensor | None = None,
         sample_size: int = 1000,
         stop_at_eos: bool = True,
+        use_full_budget: bool = False,
         acquisition_function: str = "posterior",
     ):
         if prior_kind == "empirical" and prior_empirical_dataset_name is None:
@@ -82,6 +84,7 @@ class ULTS:
         self.pruned_depth = -1
         self.device = next(model.parameters()).device
         self.stop_at_eos = stop_at_eos
+        self.use_full_budget = use_full_budget
         self.eos_token = self.model.config.eos_token_id
         self.acquisition_function = acquisition_function
 
@@ -393,6 +396,10 @@ class ULTS:
                         child_samples = children_observations[i].repeat(
                             self.sample_size
                         )
+                        if self.use_full_budget:
+                            # make sure we don't select the eos node again in the next iteration
+                            # by setting it to -inf.
+                            child_samples = np.ones(self.sample_size) * (-np.inf)
                     else:
                         child_samples = children_samples[i]
 
@@ -415,6 +422,11 @@ class ULTS:
                     if child_depth == self.depth or (
                         self.stop_at_eos and child_tokens[0, -1] == self.eos_token
                     ):
+
+
+                        if self.use_full_budget:
+                            # we want to compare by average log likelihood
+                            child_obs = child_obs / child_tokens.shape(-1)
                         if child_obs > best_observed_value:
                             best_path = children_tokens[i][None, :]
                             best_observed_value = child_obs.item()
@@ -430,5 +442,10 @@ class ULTS:
             prob_result_nodes = (
                 torch.sum(best_observed_value >= overall_max_samples) / self.sample_size
             )
+
+        # translate to total log-likelihood again
+        if self.use_full_budget:
+            best_observed_value = best_observed_value * best_path.shape(-1)
+
 
         return best_path, best_observed_value, n_llm_calls
